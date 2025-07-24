@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getUserFromHeaders, verifyCreatorStatus } from './whop-sdk';
+import { getUserFromHeaders, verifyCreatorStatus, checkUserCompanyOwnership } from './whop-sdk';
 import { prisma } from './prisma';
 
 export interface AuthenticatedUser {
@@ -25,8 +25,8 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
       where: { whopUserId: whopUser.id }
     });
     
-    // Check if user is a creator
-    const isCreator = await verifyCreatorStatus(whopUser.id);
+    // Check if user is the owner of the company where this app is installed
+    const isCreator = await checkUserCompanyOwnership(request.headers);
     
     if (!dbUser) {
       // Create new user in our database

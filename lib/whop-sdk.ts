@@ -63,6 +63,18 @@ class WhopSDK {
     };
   }
 
+  // Get app context from headers (company where app is installed)
+  static getAppContext(headers: Headers): { companyId?: string } | null {
+    // These headers indicate which Whop company the app is running in
+    const companyId = headers.get('x-whop-company-id') || 
+                     headers.get('x-whop-app-company-id') ||
+                     process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
+    
+    return {
+      companyId: companyId || undefined,
+    };
+  }
+
   // Get user's memberships to check access
   async getUserMemberships(userId: string): Promise<WhopMembership[]> {
     try {
@@ -227,6 +239,25 @@ export const grantSubscriptionPass = async (
 ): Promise<boolean> => {
   const membership = await whopSDK.createMembership(userId, planId, metadata);
   return membership !== null;
+};
+
+// Check if user is the owner of the company where this app is installed
+export const checkUserCompanyOwnership = async (headers: Headers): Promise<boolean> => {
+  const user = WhopSDK.getUserFromContext(headers);
+  const appContext = WhopSDK.getAppContext(headers);
+  
+  if (!user || !appContext?.companyId) {
+    return false;
+  }
+
+  try {
+    // Check if user owns the specific company where the app is installed
+    const isOwner = await whopSDK.checkUserCompanyAccess(user.id, appContext.companyId);
+    return isOwner;
+  } catch (error) {
+    console.error('Failed to check company ownership:', error);
+    return false;
+  }
 };
 
 export const verifyCreatorStatus = async (userId: string): Promise<boolean> => {
