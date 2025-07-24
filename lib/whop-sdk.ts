@@ -53,7 +53,7 @@ interface CreatePaymentRequest {
   description?: string;
   metadata?: Record<string, any>;
   return_url?: string;
-orking with   cancel_url?: string;
+  cancel_url?: string;
 }
 
 class WhopSDKError extends Error {
