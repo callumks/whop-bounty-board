@@ -59,79 +59,46 @@ export default function Navbar({ user }: NavbarProps) {
 
           {/* Right side */}
           <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-            {user ? (
-              <>
-                {user.is_creator && (
-                  <Link
-                    href="/create-challenge"
-                    className="btn btn-primary btn-sm"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Challenge
-                  </Link>
-                )}
-                
-                {/* User menu */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-whop-purple focus:ring-offset-2"
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    {user.avatar_url ? (
-                      <img
-                        className="h-8 w-8 rounded-full"
-                        src={user.avatar_url}
-                        alt={user.username}
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-whop-purple flex items-center justify-center">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </button>
-
-                  {isUserMenuOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div className="py-1">
-                        <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                          <div className="font-medium">{user.username}</div>
-                          <div className="text-xs text-gray-500">
-                            {user.is_creator ? 'Creator' : 'User'}
-                          </div>
-                        </div>
-                        
-                        <Link
-                          href="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Profile Settings
-                        </Link>
-                        
-                        <button
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => {
-                            // Handle logout
-                            window.location.href = '/api/auth/logout';
-                          }}
-                        >
-                          <LogOut className="w-4 h-4 inline mr-2" />
-                          Sign out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <Link
-                href="/api/auth/login"
-                className="btn btn-primary btn-sm"
+            {/* Note: In embedded Whop apps, users are always authenticated */}
+            <Link
+              href="/create-challenge"
+              className="btn btn-primary btn-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Challenge
+            </Link>
+            
+            {/* User menu - will be populated via client-side */}
+            <div className="relative">
+              <button
+                type="button"
+                className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-whop-purple focus:ring-offset-2"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
-                Sign in with Whop
-              </Link>
-            )}
+                <span className="sr-only">Open user menu</span>
+                <div className="h-8 w-8 rounded-full bg-whop-purple flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="py-1">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                      <div className="font-medium">Whop User</div>
+                      <div className="text-xs text-gray-500">Connected via Whop</div>
+                    </div>
+                    
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile Settings
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -180,65 +147,33 @@ export default function Navbar({ user }: NavbarProps) {
             </Link>
           </div>
           
-          {user ? (
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-4">
-                {user.avatar_url ? (
-                  <img
-                    className="h-10 w-10 rounded-full"
-                    src={user.avatar_url}
-                    alt={user.username}
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-whop-purple flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                )}
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.username}</div>
-                  <div className="text-sm font-medium text-gray-500">
-                    {user.is_creator ? 'Creator' : 'User'}
-                  </div>
-                </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            <div className="flex items-center px-4">
+              <div className="h-10 w-10 rounded-full bg-whop-purple flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
               </div>
-              
-              <div className="mt-3 space-y-1">
-                {user.is_creator && (
-                  <Link
-                    href="/create-challenge"
-                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  >
-                    Create Challenge
-                  </Link>
-                )}
-                
-                <Link
-                  href="/profile"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                >
-                  Profile Settings
-                </Link>
-                
-                <button
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  onClick={() => {
-                    window.location.href = '/api/auth/logout';
-                  }}
-                >
-                  Sign out
-                </button>
+              <div className="ml-3">
+                <div className="text-base font-medium text-gray-800">Whop User</div>
+                <div className="text-sm font-medium text-gray-500">Connected via Whop</div>
               </div>
             </div>
-          ) : (
-            <div className="pt-4 pb-3 border-t border-gray-200">
+            
+            <div className="mt-3 space-y-1">
               <Link
-                href="/api/auth/login"
+                href="/create-challenge"
                 className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               >
-                Sign in with Whop
+                Create Challenge
+              </Link>
+              
+              <Link
+                href="/profile"
+                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              >
+                Profile Settings
               </Link>
             </div>
-          )}
+          </div>
         </div>
       )}
     </nav>

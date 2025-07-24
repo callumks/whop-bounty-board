@@ -66,8 +66,8 @@ export default async function HomePage() {
                 Browse Challenges
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
-              <Link href="/api/auth/login" className="btn btn-lg border-2 border-white text-white hover:bg-white hover:text-whop-purple">
-                Sign in with Whop
+              <Link href="/create-challenge" className="btn btn-lg border-2 border-white text-white hover:bg-white hover:text-whop-purple">
+                Create Challenge
               </Link>
             </div>
           </div>
@@ -203,8 +203,8 @@ export default async function HomePage() {
             Connect with your Whop community and drive engagement through 
             rewarded user-generated content challenges.
           </p>
-          <Link href="/api/auth/login" className="btn btn-primary btn-lg">
-            Get Started with Whop
+          <Link href="/create-challenge" className="btn btn-primary btn-lg">
+            Create Your First Challenge
             <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
         </div>
