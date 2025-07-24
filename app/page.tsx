@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Trophy, DollarSign, Users } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
+
 
 // This would normally fetch from your API
 async function getFeaturedChallenges() {
@@ -45,8 +45,6 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar user={null} />
-      
       {/* Hero Section */}
       <section className="gradient-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">

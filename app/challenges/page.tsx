@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Search, Filter, Clock, Users, DollarSign } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
+
 import { formatCurrency, getTimeRemaining, getStatusColor } from '@/lib/utils';
 
 // This would normally fetch from your API with filters
@@ -98,8 +98,6 @@ export default async function ChallengesPage({
 
   return (
     <div className="min-h-screen">
-      <Navbar user={null} />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
