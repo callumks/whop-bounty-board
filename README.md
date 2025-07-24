@@ -1,4 +1,4 @@
-# CBountyBoard
+# BountyBoard
 
 A monetized Whop app that allows creators to launch viral content challenges and reward participants with USD, USDC, or subscription passes. Features a **10% platform fee** monetization model with optional buyout options.
 
