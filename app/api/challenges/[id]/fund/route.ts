@@ -1,199 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
-import { createFundingPaymentIntent } from '@/lib/stripe';
-import { calculateFundingAmount, BUYOUT_FEE_AMOUNT } from '@/lib/platform-fee';
-
-interface FundingRequest {
-  fundingMethod: 'stripe' | 'crypto';
-  walletAddress?: string; // For crypto funding
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const challengeId = params.id;
-    const body: FundingRequest = await request.json();
-
-    // Get challenge and verify ownership
-    const challenge = await prisma.challenge.findUnique({
-      where: { id: challengeId },
-      include: {
-        creator: true,
-      },
-    });
-
-    if (!challenge) {
-      return NextResponse.json(
-        { error: 'Challenge not found' },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.creatorId !== user.id) {
-      return NextResponse.json(
-        { error: 'Only the challenge creator can fund this challenge' },
-        { status: 403 }
-      );
-    }
-
-    if (challenge.isFunded) {
-      return NextResponse.json(
-        { error: 'Challenge is already funded' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate total funding amount needed
-    const totalAmount = calculateFundingAmount(challenge.rewardAmount, challenge.buyoutFeePaid);
-
-    if (body.fundingMethod === 'stripe') {
-      // Create Stripe payment intent
-      const paymentIntent = await createFundingPaymentIntent(
-        totalAmount,
-        'usd',
-        challenge.creator.stripeCustomerId || undefined
-      );
-
-      // Create payment record
-      const payment = await prisma.payment.create({
-        data: {
-          challengeId: challenge.id,
-          userId: user.id,
-          type: 'FUNDING',
-          method: 'STRIPE',
-          amount: totalAmount,
-          currency: 'USD',
-          stripePaymentIntentId: paymentIntent.id,
-          status: 'PENDING',
-        },
-      });
-
-      // If buyout fee was paid, create separate payment record
-      if (challenge.buyoutFeePaid) {
-        await prisma.payment.create({
-          data: {
-            challengeId: challenge.id,
-            userId: user.id,
-            type: 'BUYOUT_FEE',
-            method: 'STRIPE',
-            amount: BUYOUT_FEE_AMOUNT,
-            currency: 'USD',
-            status: 'PENDING',
-          },
-        });
-      } else {
-        // Create platform fee payment record
-        await prisma.payment.create({
-          data: {
-            challengeId: challenge.id,
-            userId: user.id,
-            type: 'PLATFORM_FEE',
-            method: 'STRIPE',
-            amount: challenge.platformFee,
-            currency: 'USD',
-            status: 'PENDING',
-          },
-        });
-      }
-
-      return NextResponse.json({
-        paymentIntent: {
-          id: paymentIntent.id,
-          clientSecret: paymentIntent.client_secret,
-        },
-        payment: {
-          id: payment.id,
-          amount: totalAmount,
-          currency: 'USD',
-        },
-      });
-
-    } else if (body.fundingMethod === 'crypto') {
-      // Mock crypto funding for MVP
-      if (!body.walletAddress) {
-        return NextResponse.json(
-          { error: 'Wallet address is required for crypto funding' },
-          { status: 400 }
-        );
-      }
-
-      // Create mock crypto payment record
-      const mockTxHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
-      
-      const payment = await prisma.payment.create({
-        data: {
-          challengeId: challenge.id,
-          userId: user.id,
-          type: 'FUNDING',
-          method: 'CRYPTO',
-          amount: totalAmount,
-          currency: 'USDC',
-          cryptoTransactionHash: mockTxHash,
-          status: 'COMPLETED', // Mock as completed for MVP
-        },
-      });
-
-      // Create platform fee record for crypto
-      if (!challenge.buyoutFeePaid) {
-        await prisma.payment.create({
-          data: {
-            challengeId: challenge.id,
-            userId: user.id,
-            type: 'PLATFORM_FEE',
-            method: 'CRYPTO',
-            amount: challenge.platformFee,
-            currency: 'USDC',
-            status: 'COMPLETED',
-          },
-        });
-      }
-
-      // Mark challenge as funded for crypto (since it's mocked as instant)
-      await prisma.challenge.update({
-        where: { id: challenge.id },
-        data: {
-          isFunded: true,
-          status: 'ACTIVE',
-        },
-      });
-
-      return NextResponse.json({
-        payment: {
-          id: payment.id,
-          transactionHash: mockTxHash,
-          amount: totalAmount,
-          currency: 'USDC',
-          status: 'COMPLETED',
-        },
-        message: 'Challenge funded successfully via crypto',
-      });
-
-    } else {
-      return NextResponse.json(
-        { error: 'Invalid funding method' },
-        { status: 400 }
-      );
-    }
-
-  } catch (error) {
-    console.error('Funding error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process funding' },
-      { status: 500 }
-    );
-  }
-}
+import { whopSDK, getUserFromHeaders } from '@/lib/whop-sdk';
+import { BUYOUT_FEE_AMOUNT } from '@/lib/platform-fee';
 
 // Get funding status for a challenge
 export async function GET(
@@ -241,12 +50,20 @@ export async function GET(
     return NextResponse.json({
       challenge: {
         id: challenge.id,
-        isFunded: challenge.isFunded,
-        status: challenge.status,
+        title: challenge.title,
+        description: challenge.description,
+        rewardType: challenge.rewardType,
         rewardAmount: challenge.rewardAmount,
         platformFee: challenge.platformFee,
         netPayout: challenge.netPayout,
         buyoutFeePaid: challenge.buyoutFeePaid,
+        rewardSubscriptionId: challenge.rewardSubscriptionId,
+        isFunded: challenge.isFunded,
+        status: challenge.status,
+        creator: {
+          id: challenge.creatorId,
+          username: user.username, // From authenticated user
+        },
       },
       payments: challenge.payments,
     });
@@ -255,6 +72,130 @@ export async function GET(
     console.error('Failed to get funding status:', error);
     return NextResponse.json(
       { error: 'Failed to get funding status' },
+      { status: 500 }
+    );
+  }
+}
+
+// Legacy support for subscription funding (direct funding without Whop checkout)
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const challengeId = params.id;
+    const body = await request.json();
+
+    // Only allow subscription funding through this endpoint
+    if (body.fundingMethod !== 'subscription') {
+      return NextResponse.json(
+        { error: 'This endpoint only supports subscription funding. Use /api/charge for other payment methods.' },
+        { status: 400 }
+      );
+    }
+
+    // Get challenge and verify ownership
+    const challenge = await prisma.challenge.findUnique({
+      where: { id: challengeId },
+      include: {
+        creator: true,
+      },
+    });
+
+    if (!challenge) {
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 }
+      );
+    }
+
+    if (challenge.creatorId !== user.id) {
+      return NextResponse.json(
+        { error: 'Only the challenge creator can fund this challenge' },
+        { status: 403 }
+      );
+    }
+
+    if (challenge.isFunded) {
+      return NextResponse.json(
+        { error: 'Challenge is already funded' },
+        { status: 400 }
+      );
+    }
+
+    if (challenge.rewardType !== 'SUBSCRIPTION') {
+      return NextResponse.json(
+        { error: 'This challenge requires monetary funding. Use /api/charge instead.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate creator has subscription access/credits
+    const whopUser = getUserFromHeaders(request.headers);
+    if (!whopUser) {
+      return NextResponse.json(
+        { error: 'Whop user context required for subscription rewards' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user has access to assign subscription passes
+    const hasSubscriptionAccess = await whopSDK.checkUserCompanyAccess(
+      whopUser.id,
+      challenge.whopCompanyId || process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || ''
+    );
+
+    if (!hasSubscriptionAccess) {
+      return NextResponse.json(
+        { error: 'You do not have access to assign subscription passes for this challenge' },
+        { status: 403 }
+      );
+    }
+
+    // Create subscription funding record
+    const payment = await prisma.payment.create({
+      data: {
+        challengeId: challenge.id,
+        userId: user.id,
+        type: 'FUNDING',
+        method: 'SUBSCRIPTION',
+        amount: 0, // No monetary cost for subscription rewards
+        currency: 'CREDITS',
+        status: 'COMPLETED',
+      },
+    });
+
+    // Mark challenge as funded for subscription rewards
+    await prisma.challenge.update({
+      where: { id: challenge.id },
+      data: {
+        isFunded: true,
+        status: 'ACTIVE',
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      payment: {
+        id: payment.id,
+        method: 'SUBSCRIPTION',
+        status: 'COMPLETED',
+      },
+      message: 'Challenge funded successfully with subscription credits',
+    });
+
+  } catch (error) {
+    console.error('Funding error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process funding' },
       { status: 500 }
     );
   }

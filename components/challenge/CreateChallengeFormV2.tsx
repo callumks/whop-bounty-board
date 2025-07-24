@@ -35,8 +35,6 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
   const [selectedVisibility, setSelectedVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
   const [buyoutFeePaid, setBuyoutFeePaid] = useState(false);
   const [feeCalculation, setFeeCalculation] = useState<FeeCalculation | null>(null);
-  const [showFundingModal, setShowFundingModal] = useState(false);
-  const [fundingMethod, setFundingMethod] = useState<'stripe' | 'crypto'>('stripe');
   
   const {
     register,
@@ -88,13 +86,8 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
       return;
     }
 
-    // Show funding modal before creating challenge
-    setShowFundingModal(true);
-  };
-
-  const handleConfirmFunding = async () => {
     const formData = {
-      ...watch(),
+      ...data,
       reward_type: selectedRewardType,
       visibility: selectedVisibility,
       buyout_fee_paid: buyoutFeePaid,
@@ -104,8 +97,6 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
       ...formData,
       feeCalculation: feeCalculation!,
     });
-
-    setShowFundingModal(false);
   };
 
   const validateRewardAmount = (value: number | undefined) => {
@@ -407,7 +398,7 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
                   </h3>
                   <p className="mt-1 text-sm text-blue-700">
                     Your challenge will be created as a draft and must be funded before it goes live. 
-                    You'll need to complete payment to activate the challenge.
+                    You'll be redirected to complete the funding process after creation.
                   </p>
                 </div>
               </div>
@@ -426,102 +417,12 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
                 disabled={isLoading}
                 className="btn btn-primary btn-lg"
               >
-                {isLoading ? 'Creating...' : 'Review & Fund Challenge'}
+                {isLoading ? 'Creating...' : 'Create Challenge'}
               </button>
             </div>
           </div>
         </form>
       </div>
-
-      {/* Funding Modal */}
-      {showFundingModal && feeCalculation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold mb-4">Fund Your Challenge</h3>
-            
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h4 className="font-medium mb-2">Payment Breakdown</h4>
-              <div className="text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span>Reward Amount:</span>
-                  <span>{formatCurrency(feeCalculation.rewardAmount)}</span>
-                </div>
-                {!feeCalculation.buyoutFeePaid && (
-                  <div className="flex justify-between">
-                    <span>Platform Fee (10%):</span>
-                    <span>{formatCurrency(feeCalculation.platformFee)}</span>
-                  </div>
-                )}
-                {feeCalculation.buyoutFeePaid && (
-                  <div className="flex justify-between">
-                    <span>Buyout Fee:</span>
-                    <span>{formatCurrency(BUYOUT_FEE_AMOUNT)}</span>
-                  </div>
-                )}
-                <div className="border-t pt-1 font-medium flex justify-between">
-                  <span>Total Cost:</span>
-                  <span>{formatCurrency(feeCalculation.totalCost)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-medium">Select Funding Method</h4>
-              
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setFundingMethod('stripe')}
-                  className={`w-full p-3 border-2 rounded-lg flex items-center ${
-                    fundingMethod === 'stripe'
-                      ? 'border-whop-purple bg-whop-purple/5'
-                      : 'border-gray-200'
-                  }`}
-                >
-                  <CreditCard className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Credit/Debit Card</div>
-                    <div className="text-sm text-gray-500">Pay via Stripe</div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFundingMethod('crypto')}
-                  className={`w-full p-3 border-2 rounded-lg flex items-center ${
-                    fundingMethod === 'crypto'
-                      ? 'border-whop-purple bg-whop-purple/5'
-                      : 'border-gray-200'
-                  }`}
-                >
-                  <Wallet className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">USDC Wallet</div>
-                    <div className="text-sm text-gray-500">Transfer from crypto wallet</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowFundingModal(false)}
-                className="flex-1 btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmFunding}
-                className="flex-1 btn btn-primary"
-              >
-                Confirm & Pay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 

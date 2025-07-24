@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const { feeCalculation, ...challengeData } = body;
 
     // Validate required fields
-    const requiredFields = ['title', 'description', 'reward_type', 'deadline', 'visibility'];
+    const requiredFields = ['title', 'description', 'rewardType', 'deadline', 'visibility'];
     for (const field of requiredFields) {
       if (!challengeData[field]) {
         return NextResponse.json(
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate reward amount for USD/USDC
-    if ((challengeData.reward_type === 'USD' || challengeData.reward_type === 'USDC')) {
-      if (!challengeData.reward_amount) {
+    if ((challengeData.rewardType === 'USD' || challengeData.rewardType === 'USDC')) {
+      if (!challengeData.rewardAmount) {
         return NextResponse.json(
           { error: 'Reward amount is required for USD/USDC challenges' },
           { status: 400 }
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate minimum reward
-      const validation = validateMinimumReward(challengeData.reward_amount);
+      const validation = validateMinimumReward(challengeData.rewardAmount);
       if (!validation.isValid) {
         return NextResponse.json(
           { error: validation.message },
@@ -143,8 +143,8 @@ export async function POST(request: NextRequest) {
 
       // Recalculate fees to ensure consistency
       const recalculatedFees = calculatePlatformFee(
-        challengeData.reward_amount,
-        challengeData.buyout_fee_paid || false
+        challengeData.rewardAmount,
+        challengeData.buyoutFeePaid || false
       );
 
       // Verify fee calculation matches
@@ -156,14 +156,17 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    // Validate subscription ID for subscription rewards
-    if (challengeData.reward_type === 'SUBSCRIPTION' && !challengeData.reward_subscription_id) {
-      return NextResponse.json(
-        { error: 'Subscription ID is required for subscription challenges' },
-        { status: 400 }
-      );
+    } else if (challengeData.rewardType === 'SUBSCRIPTION') {
+      // For subscription rewards, validate that the user has credits/access
+      if (!challengeData.rewardSubscriptionId) {
+        return NextResponse.json(
+          { error: 'Subscription ID is required for subscription challenges' },
+          { status: 400 }
+        );
+      }
+      
+      // TODO: Add validation that creator has subscription credits to assign
+      // This would check their Whop company plans and available credits
     }
 
     // Create challenge with platform fee data
@@ -172,16 +175,16 @@ export async function POST(request: NextRequest) {
         creatorId: user.id,
         title: challengeData.title,
         description: challengeData.description,
-        requiredTags: challengeData.required_tags || [],
-        rewardType: challengeData.reward_type,
-        rewardAmount: challengeData.reward_amount || 0,
+        requiredTags: challengeData.requiredTags || [],
+        rewardType: challengeData.rewardType,
+        rewardAmount: challengeData.rewardAmount || 0,
         platformFee: feeCalculation?.platformFee || 0,
-        netPayout: feeCalculation?.netPayout || challengeData.reward_amount || 0,
-        buyoutFeePaid: challengeData.buyout_fee_paid || false,
-        rewardSubscriptionId: challengeData.reward_subscription_id,
+        netPayout: feeCalculation?.netPayout || challengeData.rewardAmount || 0,
+        buyoutFeePaid: challengeData.buyoutFeePaid || false,
+        rewardSubscriptionId: challengeData.rewardSubscriptionId,
         deadline: new Date(challengeData.deadline),
         visibility: challengeData.visibility,
-        whopCompanyId: challengeData.whop_company_id,
+        whopCompanyId: challengeData.whopCompanyId,
         status: 'DRAFT', // Created as draft until funded
         isFunded: false,
       },
@@ -196,7 +199,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(challenge, { status: 201 });
+    return NextResponse.json({ 
+      success: true,
+      id: challenge.id,
+      challenge,
+      message: 'Challenge created successfully. Please complete funding to activate.'
+    }, { status: 201 });
   } catch (error) {
     console.error('Failed to create challenge:', error);
     return NextResponse.json(

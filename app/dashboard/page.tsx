@@ -1,175 +1,123 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  DollarSign, 
-  Users, 
-  TrendingUp,
-  Calendar,
-  Filter
-} from 'lucide-react';
 import Link from 'next/link';
+import { Plus, DollarSign, Users, Clock, AlertCircle, CheckCircle2, Wallet } from 'lucide-react';
+import { formatCurrency, getTimeRemaining } from '@/lib/utils';
 
 interface Challenge {
   id: string;
   title: string;
   description: string;
-  rewardAmount?: number;
   rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
+  rewardAmount: number;
+  deadline: string;
   status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   isFunded: boolean;
-  deadline: string;
-  createdAt: string;
   totalSubmissions: number;
-  pendingSubmissions: number;
   approvedSubmissions: number;
-  rejectedSubmissions: number;
-}
-
-interface DashboardStats {
-  totalChallenges: number;
-  activeChallenges: number;
-  totalSubmissions: number;
-  pendingReviews: number;
-  totalPaidOut: number;
-  averageEngagement: number;
+  createdAt: string;
 }
 
 export default function DashboardPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'DRAFT' | 'COMPLETED'>('ALL');
+  const [activeTab, setActiveTab] = useState<'all' | 'draft' | 'active' | 'completed'>('all');
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchChallenges();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchChallenges = async () => {
     try {
-      // Mock data for now - would fetch from real API
-      const mockStats: DashboardStats = {
-        totalChallenges: 8,
-        activeChallenges: 3,
-        totalSubmissions: 147,
-        pendingReviews: 23,
-        totalPaidOut: 2450.00,
-        averageEngagement: 18.4,
-      };
-
+      // This would fetch user's challenges from the API
+      // For now, using mock data
       const mockChallenges: Challenge[] = [
         {
           id: '1',
-          title: 'Create TikTok Content for Brand Launch',
-          description: 'Create engaging TikTok videos showcasing our new product line',
-          rewardAmount: 500,
+          title: 'TikTok Dance Challenge',
+          description: 'Create an original dance to our latest track',
           rewardType: 'USD',
+          rewardAmount: 500,
+          deadline: '2024-01-31T23:59:59Z',
           status: 'ACTIVE',
           isFunded: true,
-          deadline: '2024-02-15T00:00:00Z',
-          createdAt: '2024-01-01T00:00:00Z',
           totalSubmissions: 47,
-          pendingSubmissions: 12,
           approvedSubmissions: 23,
-          rejectedSubmissions: 12,
+          createdAt: '2024-01-15T10:00:00Z',
         },
         {
           id: '2',
-          title: 'Instagram Stories Challenge',
-          description: 'Create creative Instagram stories featuring our community',
-          rewardAmount: 250,
-          rewardType: 'USD',
-          status: 'ACTIVE',
-          isFunded: true,
-          deadline: '2024-02-20T00:00:00Z',
-          createdAt: '2024-01-05T00:00:00Z',
-          totalSubmissions: 28,
-          pendingSubmissions: 8,
-          approvedSubmissions: 15,
-          rejectedSubmissions: 5,
+          title: 'Product Review Challenge',
+          description: 'Create an honest review of our new wireless headphones',
+          rewardType: 'SUBSCRIPTION',
+          rewardAmount: 0,
+          deadline: '2024-02-15T23:59:59Z',
+          status: 'DRAFT',
+          isFunded: false,
+          totalSubmissions: 0,
+          approvedSubmissions: 0,
+          createdAt: '2024-01-20T14:30:00Z',
         },
         {
           id: '3',
-          title: 'Twitter/X Engagement Campaign',
-          description: 'Create viral Twitter content about our latest update',
-          rewardAmount: 0,
-          rewardType: 'SUBSCRIPTION',
-          status: 'DRAFT',
-          isFunded: false,
-          deadline: '2024-03-01T00:00:00Z',
-          createdAt: '2024-01-10T00:00:00Z',
-          totalSubmissions: 0,
-          pendingSubmissions: 0,
-          approvedSubmissions: 0,
-          rejectedSubmissions: 0,
+          title: 'Crypto Art Challenge',
+          description: 'Design original digital artwork featuring our mascot',
+          rewardType: 'USDC',
+          rewardAmount: 200,
+          deadline: '2024-02-28T23:59:59Z',
+          status: 'ACTIVE',
+          isFunded: true,
+          totalSubmissions: 15,
+          approvedSubmissions: 8,
+          createdAt: '2024-01-18T09:15:00Z',
         },
       ];
-
-      setStats(mockStats);
       setChallenges(mockChallenges);
-    } catch (err) {
-      setError('Failed to load dashboard data');
+    } catch (error) {
+      console.error('Failed to fetch challenges:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'text-green-700 bg-green-100';
-      case 'DRAFT':
-        return 'text-yellow-700 bg-yellow-100';
-      case 'COMPLETED':
-        return 'text-blue-700 bg-blue-100';
-      case 'CANCELLED':
-        return 'text-red-700 bg-red-100';
-      default:
-        return 'text-gray-700 bg-gray-100';
-    }
-  };
-
   const filteredChallenges = challenges.filter(challenge => {
-    if (filter === 'ALL') return true;
-    return challenge.status === filter;
+    switch (activeTab) {
+      case 'draft':
+        return challenge.status === 'DRAFT';
+      case 'active':
+        return challenge.status === 'ACTIVE';
+      case 'completed':
+        return challenge.status === 'COMPLETED';
+      default:
+        return true;
+    }
   });
+
+  const getStatusIcon = (challenge: Challenge) => {
+    if (challenge.status === 'DRAFT') {
+      return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+    } else if (challenge.status === 'ACTIVE') {
+      return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+    }
+    return <Clock className="w-5 h-5 text-gray-500" />;
+  };
+
+  const getStatusText = (challenge: Challenge) => {
+    if (challenge.status === 'DRAFT') {
+      return 'Pending Funding';
+    } else if (challenge.status === 'ACTIVE') {
+      return 'Live & Active';
+    }
+    return challenge.status;
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-lg p-6">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-whop-purple mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your challenges...</p>
         </div>
       </div>
     );
@@ -180,235 +128,223 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Creator Dashboard</h1>
-              <p className="mt-2 text-gray-600">
-                Manage your challenges, review submissions, and track performance.
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Creator Dashboard</h1>
+              <p className="text-gray-600">
+                Manage your challenges, track performance, and engage with your community
               </p>
             </div>
             <Link
               href="/create-challenge"
-              className="btn btn-primary"
+              className="btn btn-primary flex items-center"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Create Challenge
             </Link>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <TrendingUp className="w-8 h-8 text-whop-purple" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Challenges</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalChallenges}</p>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-whop-purple/10 rounded-lg flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-whop-purple" />
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Clock className="w-8 h-8 text-green-500" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Active Challenges</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeChallenges}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Users className="w-8 h-8 text-blue-500" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Pending Reviews</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pendingReviews}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <DollarSign className="w-8 h-8 text-yellow-500" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Paid Out</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalPaidOut)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Challenges Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium text-gray-900">Your Challenges</h2>
-              
-              {/* Filter */}
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value as any)}
-                  className="form-input py-1 text-sm"
-                >
-                  <option value="ALL">All</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="DRAFT">Draft</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-200">
-            {filteredChallenges.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No challenges found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {filter === 'ALL' 
-                    ? 'Get started by creating your first challenge.'
-                    : `No ${filter.toLowerCase()} challenges found.`
-                  }
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Active Challenges</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {challenges.filter(c => c.status === 'ACTIVE').length}
                 </p>
-                {filter === 'ALL' && (
-                  <div className="mt-6">
-                    <Link href="/create-challenge" className="btn btn-primary">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Your First Challenge
-                    </Link>
-                  </div>
-                )}
               </div>
-            ) : (
-              filteredChallenges.map((challenge) => (
-                <div key={challenge.id} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-medium text-gray-900">{challenge.title}</h3>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(challenge.status)}`}>
-                          {challenge.status}
-                        </span>
-                        {!challenge.isFunded && challenge.status === 'DRAFT' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-orange-700 bg-orange-100">
-                            Needs Funding
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="text-gray-600 mb-3 line-clamp-2">{challenge.description}</p>
-                      
-                      <div className="flex items-center space-x-6 text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <DollarSign className="w-4 h-4 mr-1" />
-                          {challenge.rewardAmount 
-                            ? formatCurrency(challenge.rewardAmount)
-                            : 'Subscription Pass'
-                          }
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          Due {formatDate(challenge.deadline)}
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {challenge.totalSubmissions} submissions
-                        </div>
-                        {challenge.pendingSubmissions > 0 && (
-                          <div className="flex items-center text-yellow-600">
-                            <Clock className="w-4 h-4 mr-1" />
-                            {challenge.pendingSubmissions} pending review
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        href={`/challenges/${challenge.id}`}
-                        className="btn btn-secondary btn-sm"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </Link>
-                      
-                      {challenge.pendingSubmissions > 0 && (
-                        <Link
-                          href={`/challenges/${challenge.id}/review`}
-                          className="btn btn-primary btn-sm"
-                        >
-                          Review ({challenge.pendingSubmissions})
-                        </Link>
-                      )}
-                    </div>
-                  </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-yellow-600" />
                 </div>
-              ))
-            )}
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Needs Funding</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {challenges.filter(c => c.status === 'DRAFT').length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-green-600" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Submissions</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {challenges.reduce((sum, c) => sum + c.totalSubmissions, 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Rewards Paid</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {formatCurrency(
+                    challenges
+                      .filter(c => c.status === 'ACTIVE' || c.status === 'COMPLETED')
+                      .reduce((sum, c) => sum + (c.rewardAmount * c.approvedSubmissions), 0)
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            href="/create-challenge"
-            className="block p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center">
-              <Plus className="w-8 h-8 text-whop-purple mr-4" />
-              <div>
-                <h3 className="font-medium text-gray-900">Create New Challenge</h3>
-                <p className="text-sm text-gray-600 mt-1">Launch a new content challenge</p>
-              </div>
-            </div>
-          </Link>
+        {/* Tabs */}
+        <div className="bg-white rounded-lg border border-gray-200 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex">
+              {[
+                { key: 'all', label: 'All Challenges', count: challenges.length },
+                { key: 'draft', label: 'Needs Funding', count: challenges.filter(c => c.status === 'DRAFT').length },
+                { key: 'active', label: 'Active', count: challenges.filter(c => c.status === 'ACTIVE').length },
+                { key: 'completed', label: 'Completed', count: challenges.filter(c => c.status === 'COMPLETED').length },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.key
+                      ? 'border-whop-purple text-whop-purple'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </nav>
+          </div>
 
-          <Link
-            href="/challenges?filter=pending"
-            className="block p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center">
-              <Clock className="w-8 h-8 text-yellow-500 mr-4" />
-              <div>
-                <h3 className="font-medium text-gray-900">Review Submissions</h3>
-                <p className="text-sm text-gray-600 mt-1">Check pending content submissions</p>
+          {/* Challenge List */}
+          <div className="p-6">
+            {filteredChallenges.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Plus className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No challenges found</h3>
+                <p className="text-gray-500 mb-6">
+                  {activeTab === 'all' 
+                    ? "You haven't created any challenges yet."
+                    : `No ${activeTab} challenges found.`
+                  }
+                </p>
+                {activeTab === 'all' && (
+                  <Link href="/create-challenge" className="btn btn-primary">
+                    Create Your First Challenge
+                  </Link>
+                )}
               </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/analytics"
-            className="block p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-green-500 mr-4" />
-              <div>
-                <h3 className="font-medium text-gray-900">View Analytics</h3>
-                <p className="text-sm text-gray-600 mt-1">Track performance and engagement</p>
+            ) : (
+              <div className="space-y-4">
+                {filteredChallenges.map((challenge) => (
+                  <div
+                    key={challenge.id}
+                    className="border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2">
+                          {getStatusIcon(challenge)}
+                          <span className="ml-2 text-sm font-medium text-gray-600">
+                            {getStatusText(challenge)}
+                          </span>
+                          <span className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
+                            challenge.rewardType === 'USD' ? 'bg-green-100 text-green-800' :
+                            challenge.rewardType === 'USDC' ? 'bg-blue-100 text-blue-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {challenge.rewardType === 'SUBSCRIPTION' ? 'PASS' : challenge.rewardType}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {challenge.title}
+                        </h3>
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {challenge.description}
+                        </p>
+                        
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Reward:</span>
+                            <span className="ml-1 font-medium">
+                              {challenge.rewardType === 'SUBSCRIPTION' 
+                                ? 'Subscription Access' 
+                                : formatCurrency(challenge.rewardAmount)
+                              }
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Submissions:</span>
+                            <span className="ml-1 font-medium">{challenge.totalSubmissions}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Deadline:</span>
+                            <span className="ml-1 font-medium">{getTimeRemaining(challenge.deadline)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-6 flex flex-col space-y-2">
+                        {challenge.status === 'DRAFT' ? (
+                          <Link
+                            href={`/challenges/${challenge.id}/fund`}
+                            className="btn btn-primary btn-sm flex items-center"
+                          >
+                            <Wallet className="w-4 h-4 mr-1" />
+                            Fund Challenge
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/challenges/${challenge.id}`}
+                            className="btn btn-secondary btn-sm"
+                          >
+                            View Challenge
+                          </Link>
+                        )}
+                        
+                        {challenge.status === 'ACTIVE' && (
+                          <Link
+                            href={`/challenges/${challenge.id}/submissions`}
+                            className="btn btn-outline btn-sm"
+                          >
+                            Review Submissions
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>

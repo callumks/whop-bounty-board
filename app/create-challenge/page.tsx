@@ -61,6 +61,7 @@ export default function CreateChallengePage() {
           visibility: data.visibility,
           whopCompanyId: data.whop_company_id,
           buyoutFeePaid: data.buyout_fee_paid,
+          feeCalculation: data.feeCalculation,
         }),
       });
 
@@ -71,8 +72,8 @@ export default function CreateChallengePage() {
 
       const result = await response.json();
       
-      // Redirect to the funding page or challenge details
-      router.push(`/challenges/${result.challenge.id}?fund=true`);
+      // Redirect to the dedicated funding page
+      router.push(`/challenges/${result.id}/fund`);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create challenge');

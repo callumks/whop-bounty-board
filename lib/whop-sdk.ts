@@ -1,5 +1,7 @@
 // Whop SDK Integration for ChallengeHub
-// Based on official Whop developer documentation: https://dev.whop.com/introduction
+// Based on official Whop developer documentation: https://dev.whop.com/
+
+import { WhopAPI } from '@whop-sdk/core';
 
 interface WhopUser {
   id: string;
@@ -34,64 +36,198 @@ interface WhopPlan {
   interval: 'monthly' | 'yearly' | 'lifetime';
 }
 
+interface WhopPayment {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'canceled';
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CreatePaymentRequest {
+  user_id: string;
+  amount: number;
+  currency?: string;
+  description?: string;
+  metadata?: Record<string, any>;
+  return_url?: string;
+orking with   cancel_url?: string;
+}
+
+class WhopSDKError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'WhopSDKError';
+  }
+}
+
 class WhopSDK {
   private apiKey: string;
-  private baseUrl: string = 'https://api.whop.com/api/v5';
+  private whopAPI: any;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+    this.whopAPI = WhopAPI({
+      token: apiKey,
+    });
   }
 
-  // Authentication is handled by Whop when app is embedded
-  // We get user info from headers/context
-  static getUserFromContext(headers: Headers): WhopUser | null {
-    // In a real Whop app, user info comes from headers
-    const userId = headers.get('x-whop-user-id');
-    const userEmail = headers.get('x-whop-user-email');
-    const username = headers.get('x-whop-username');
-    
-    if (!userId || !userEmail || !username) {
+  // Get user from Whop headers in embedded app context
+  static getUserFromHeaders(headers: Headers): WhopUser | null {
+    try {
+      const userId = headers.get('x-whop-user-id');
+      const userEmail = headers.get('x-whop-user-email');
+      const username = headers.get('x-whop-username');
+      
+      if (!userId || !userEmail || !username) {
+        return null;
+      }
+
+      return {
+        id: userId,
+        email: userEmail,
+        username: username,
+        avatar_url: headers.get('x-whop-avatar-url') || undefined,
+        discord_id: headers.get('x-whop-discord-id') || undefined,
+      };
+    } catch (error) {
+      console.error('Failed to parse user from headers:', error);
       return null;
     }
-
-    return {
-      id: userId,
-      email: userEmail,
-      username: username,
-      avatar_url: headers.get('x-whop-avatar-url') || undefined,
-      discord_id: headers.get('x-whop-discord-id') || undefined,
-    };
   }
 
   // Get app context from headers (company where app is installed)
   static getAppContext(headers: Headers): { companyId?: string } | null {
-    // These headers indicate which Whop company the app is running in
-    const companyId = headers.get('x-whop-company-id') || 
-                     headers.get('x-whop-app-company-id') ||
-                     process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
-    
-    return {
-      companyId: companyId || undefined,
-    };
+    try {
+      const companyId = headers.get('x-whop-company-id') || 
+                       headers.get('x-whop-app-company-id') ||
+                       process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
+      
+      return {
+        companyId: companyId || undefined,
+      };
+    } catch (error) {
+      console.error('Failed to get app context:', error);
+      return null;
+    }
+  }
+
+  // Create a payment for challenge funding
+  async createPayment(request: CreatePaymentRequest): Promise<WhopPayment> {
+    try {
+      if (!request.user_id) {
+        throw new WhopSDKError('User ID is required', 400, 'MISSING_USER_ID');
+      }
+
+      if (!request.amount || request.amount <= 0) {
+        throw new WhopSDKError('Valid amount is required', 400, 'INVALID_AMOUNT');
+      }
+
+      const response = await this.whopAPI.POST('/app/payments', {
+        body: {
+          user_id: request.user_id,
+          amount: Math.round(request.amount * 100), // Convert to cents
+          currency: request.currency || 'USD',
+          description: request.description || 'Challenge funding',
+          metadata: {
+            source: 'challenge_funding',
+            timestamp: new Date().toISOString(),
+            ...request.metadata,
+          },
+          return_url: request.return_url,
+          cancel_url: request.cancel_url,
+        },
+      });
+
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to create payment',
+          response.error.status || 500,
+          response.error.code
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
+      console.error('Failed to create payment:', error);
+      throw new WhopSDKError('Payment creation failed', 500, 'PAYMENT_CREATION_FAILED');
+    }
+  }
+
+  // Get payment status
+  async getPayment(paymentId: string): Promise<WhopPayment> {
+    try {
+      if (!paymentId) {
+        throw new WhopSDKError('Payment ID is required', 400, 'MISSING_PAYMENT_ID');
+      }
+
+      const response = await this.whopAPI.GET(`/app/payments/${paymentId}`);
+
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to get payment',
+          response.error.status || 500,
+          response.error.code
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
+      console.error('Failed to get payment:', error);
+      throw new WhopSDKError('Payment retrieval failed', 500, 'PAYMENT_RETRIEVAL_FAILED');
+    }
+  }
+
+  // Confirm payment completion (if needed)
+  async confirmPayment(paymentId: string): Promise<boolean> {
+    try {
+      if (!paymentId) {
+        throw new WhopSDKError('Payment ID is required', 400, 'MISSING_PAYMENT_ID');
+      }
+
+      const response = await this.whopAPI.POST(`/app/payments/${paymentId}/confirm`);
+
+      return !response.error;
+    } catch (error) {
+      console.error('Failed to confirm payment:', error);
+      return false;
+    }
   }
 
   // Get user's memberships to check access
   async getUserMemberships(userId: string): Promise<WhopMembership[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/users/${userId}/memberships`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch memberships: ${response.statusText}`);
+      if (!userId) {
+        throw new WhopSDKError('User ID is required', 400, 'MISSING_USER_ID');
       }
 
-      const data = await response.json();
-      return data.data || [];
+      const response = await this.whopAPI.GET(`/app/users/${userId}/memberships`);
+
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to fetch memberships',
+          response.error.status || 500,
+          response.error.code
+        );
+      }
+
+      return response.data || [];
     } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
       console.error('Failed to get user memberships:', error);
       return [];
     }
@@ -99,29 +235,39 @@ class WhopSDK {
 
   // Check if user has access to a specific company
   async checkUserCompanyAccess(userId: string, companyId: string): Promise<boolean> {
-    const memberships = await this.getUserMemberships(userId);
-    return memberships.some(
-      membership => membership.company_id === companyId && membership.valid
-    );
+    try {
+      const memberships = await this.getUserMemberships(userId);
+      return memberships.some(
+        membership => membership.company_id === companyId && membership.valid
+      );
+    } catch (error) {
+      console.error('Failed to check company access:', error);
+      return false;
+    }
   }
 
   // Get company information
   async getCompany(companyId: string): Promise<WhopCompany | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch company: ${response.statusText}`);
+      if (!companyId) {
+        throw new WhopSDKError('Company ID is required', 400, 'MISSING_COMPANY_ID');
       }
 
-      const data = await response.json();
-      return data;
+      const response = await this.whopAPI.GET(`/app/companies/${companyId}`);
+
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to fetch company',
+          response.error.status || 500,
+          response.error.code
+        );
+      }
+
+      return response.data;
     } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
       console.error('Failed to get company:', error);
       return null;
     }
@@ -130,20 +276,25 @@ class WhopSDK {
   // Get company plans for subscription rewards
   async getCompanyPlans(companyId: string): Promise<WhopPlan[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/plans`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch plans: ${response.statusText}`);
+      if (!companyId) {
+        throw new WhopSDKError('Company ID is required', 400, 'MISSING_COMPANY_ID');
       }
 
-      const data = await response.json();
-      return data.data || [];
+      const response = await this.whopAPI.GET(`/app/companies/${companyId}/plans`);
+
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to fetch plans',
+          response.error.status || 500,
+          response.error.code
+        );
+      }
+
+      return response.data || [];
     } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
       console.error('Failed to get company plans:', error);
       return [];
     }
@@ -156,13 +307,12 @@ class WhopSDK {
     metadata?: Record<string, any>
   ): Promise<WhopMembership | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/memberships`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      if (!userId || !planId) {
+        throw new WhopSDKError('User ID and Plan ID are required', 400, 'MISSING_REQUIRED_FIELDS');
+      }
+
+      const response = await this.whopAPI.POST('/app/memberships', {
+        body: {
           user_id: userId,
           plan_id: planId,
           metadata: {
@@ -170,16 +320,22 @@ class WhopSDK {
             granted_at: new Date().toISOString(),
             ...metadata,
           },
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to create membership: ${response.statusText}`);
+      if (response.error) {
+        throw new WhopSDKError(
+          response.error.message || 'Failed to create membership',
+          response.error.status || 500,
+          response.error.code
+        );
       }
 
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
+      if (error instanceof WhopSDKError) {
+        throw error;
+      }
       console.error('Failed to create membership:', error);
       return null;
     }
@@ -188,36 +344,42 @@ class WhopSDK {
   // Check if user is a creator (has companies)
   async isUserCreator(userId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/users/${userId}/companies`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
+      if (!userId) {
         return false;
       }
 
-      const data = await response.json();
-      return (data.data && data.data.length > 0) || false;
+      const response = await this.whopAPI.GET(`/app/users/${userId}/companies`);
+
+      if (response.error) {
+        return false;
+      }
+
+      return (response.data && response.data.length > 0) || false;
     } catch (error) {
       console.error('Failed to check creator status:', error);
       return false;
     }
   }
 
-  // For development/testing - create payment for challenge funding
-  async createPayment(amount: number, currency: string = 'USD', metadata?: Record<string, any>) {
-    // This would integrate with Whop's payment system
-    // For now, return a mock payment intent
-    return {
-      id: `payment_${Date.now()}`,
-      amount,
-      currency,
-      status: 'requires_payment_method',
-      metadata,
-    };
+  // Validate webhook signature
+  validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
+    try {
+      // Implement Whop's webhook signature validation
+      // This is a placeholder - implement according to Whop's docs
+      const crypto = require('crypto');
+      const computedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(payload)
+        .digest('hex');
+      
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(computedSignature)
+      );
+    } catch (error) {
+      console.error('Webhook signature validation failed:', error);
+      return false;
+    }
   }
 }
 
@@ -225,11 +387,16 @@ class WhopSDK {
 export const whopSDK = new WhopSDK(process.env.WHOP_API_KEY || '');
 
 // Helper functions
-export const getUserFromHeaders = WhopSDK.getUserFromContext;
+export const getUserFromHeaders = WhopSDK.getUserFromHeaders;
 
 export const checkUserAccess = async (userId: string, companyId?: string): Promise<boolean> => {
-  if (!companyId) return true; // Public challenge
-  return whopSDK.checkUserCompanyAccess(userId, companyId);
+  try {
+    if (!companyId) return true; // Public challenge
+    return await whopSDK.checkUserCompanyAccess(userId, companyId);
+  } catch (error) {
+    console.error('Failed to check user access:', error);
+    return false;
+  }
 };
 
 export const grantSubscriptionPass = async (
@@ -237,21 +404,25 @@ export const grantSubscriptionPass = async (
   planId: string, 
   metadata?: Record<string, any>
 ): Promise<boolean> => {
-  const membership = await whopSDK.createMembership(userId, planId, metadata);
-  return membership !== null;
+  try {
+    const membership = await whopSDK.createMembership(userId, planId, metadata);
+    return membership !== null;
+  } catch (error) {
+    console.error('Failed to grant subscription pass:', error);
+    return false;
+  }
 };
 
 // Check if user is the owner of the company where this app is installed
 export const checkUserCompanyOwnership = async (headers: Headers): Promise<boolean> => {
-  const user = WhopSDK.getUserFromContext(headers);
-  const appContext = WhopSDK.getAppContext(headers);
-  
-  if (!user || !appContext?.companyId) {
-    return false;
-  }
-
   try {
-    // Check if user owns the specific company where the app is installed
+    const user = WhopSDK.getUserFromHeaders(headers);
+    const appContext = WhopSDK.getAppContext(headers);
+    
+    if (!user || !appContext?.companyId) {
+      return false;
+    }
+
     const isOwner = await whopSDK.checkUserCompanyAccess(user.id, appContext.companyId);
     return isOwner;
   } catch (error) {
@@ -261,7 +432,21 @@ export const checkUserCompanyOwnership = async (headers: Headers): Promise<boole
 };
 
 export const verifyCreatorStatus = async (userId: string): Promise<boolean> => {
-  return whopSDK.isUserCreator(userId);
+  try {
+    return await whopSDK.isUserCreator(userId);
+  } catch (error) {
+    console.error('Failed to verify creator status:', error);
+    return false;
+  }
 };
 
-export { WhopSDK, type WhopUser, type WhopCompany, type WhopMembership, type WhopPlan }; 
+export { 
+  WhopSDK, 
+  WhopSDKError,
+  type WhopUser, 
+  type WhopCompany, 
+  type WhopMembership, 
+  type WhopPlan,
+  type WhopPayment,
+  type CreatePaymentRequest
+}; 
