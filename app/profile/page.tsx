@@ -140,10 +140,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <button className="btn btn-secondary">
-              <Settings className="w-4 h-4 mr-2" />
-              Edit Profile
-            </button>
+
           </div>
         </div>
 
