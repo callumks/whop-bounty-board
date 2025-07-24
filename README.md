@@ -1,10 +1,10 @@
-# ChallengeHub 🚀
+# CBountyBoard
 
 A monetized Whop app that allows creators to launch viral content challenges and reward participants with USD, USDC, or subscription passes. Features a **10% platform fee** monetization model with optional buyout options.
 
-## ✨ Features
+## Features
 
-### 🎯 Challenge Creation (Creator View)
+### Challenge Creation (Creator View)
 
 - **Public & Private Challenges**: Visible to all Whop users or only your customers
 - **Multiple Reward Types**: USD (Stripe), USDC (crypto), or Subscription Passes
@@ -12,25 +12,25 @@ A monetized Whop app that allows creators to launch viral content challenges and
 - **Funding Gates**: Challenges must be pre-funded before going live
 - **Rich Challenge Configuration**: Title, description, tags, deadlines, and visibility settings
 
-### 🔐 User Challenge Participation
+### User Challenge Participation
 
 - **Browse Active Challenges**: Public challenges + private ones you have access to
 - **Easy Submission**: Submit links to your UGC (TikTok, Twitter, Instagram, YouTube, etc.)
 - **Real-time Status**: Track submission status (Pending, Approved, Rejected, Paid)
 
-### 🧑‍⚖️ Content Moderation Panel
+### Content Moderation Panel
 
 - **Manual Review System**: Creators approve/reject submissions manually
 - **Rich Moderation Interface**: Preview content with approve/reject actions
 - **Automatic Payouts**: Trigger payments when submissions are approved
 
-### 🔒 Authentication & Gating
+### Authentication & Gating
 
 - **Whop App Integration**: Embedded as a Whop app with zero authentication required
 - **Creator vs Customer**: Automatic role detection via Whop headers
 - **Private Challenge Access**: Verify customer access to private challenges based on memberships
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - **Frontend**: React 18, Next.js 14, Tailwind CSS
 - **Backend**: Next.js API Routes, TypeScript
@@ -42,7 +42,7 @@ A monetized Whop app that allows creators to launch viral content challenges and
   - Whop API for subscription passes
 - **UI Components**: Lucide React icons, Custom component library
 
-## 💰 Monetization Model
+## Monetization Model
 
 ChallengeHub implements a **10% platform fee** on all challenge rewards:
 
@@ -68,7 +68,7 @@ Example: $100 Reward Challenge
 └─────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -208,7 +208,7 @@ challengehub/
 - **USDC**: Mock crypto wallet integration (extensible)
 - **Subscriptions**: Whop API integration for pass granting
 
-## 🚀 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 
@@ -235,7 +235,7 @@ The database schema in `supabase/schema.sql` includes:
 - Indexes for performance
 - Triggers for data consistency
 
-## 🔐 Security Features
+## Security Features
 
 - **Row Level Security**: Database-level access control
 - **Authentication Middleware**: Protect API routes
@@ -243,14 +243,14 @@ The database schema in `supabase/schema.sql` includes:
 - **Payment Security**: Secure webhook verification
 - **CORS Configuration**: Proper cross-origin resource sharing
 
-## 📊 Analytics & Monitoring
+## Analytics & Monitoring
 
 - **Challenge Performance**: Track submissions and engagement
 - **Payment Analytics**: Monitor funding and payouts
 - **User Behavior**: Track challenge participation
 - **Error Monitoring**: Built-in error handling and logging
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
@@ -262,13 +262,13 @@ The database schema in `supabase/schema.sql` includes:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## Support
 
 - Create an issue for bug reports or feature requests
 - Check existing issues before creating new ones
 - Provide detailed information for faster resolution
 
-## 🎯 Roadmap
+## Roadmap
 
 - [ ] Advanced analytics dashboard
 - [ ] Mobile app support
