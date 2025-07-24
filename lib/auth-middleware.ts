@@ -57,7 +57,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
       whop_user_id: dbUser.whopUserId,
       email: dbUser.email,
       username: dbUser.username,
-      avatar_url: dbUser.avatarUrl,
+      avatar_url: dbUser.avatarUrl || undefined,
       is_creator: dbUser.isCreator,
     };
   } catch (error) {
