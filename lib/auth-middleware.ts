@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getUserFromHeaders, verifyCreatorStatus } from './whop-sdk';
-import { getUserByWhopId, createUser, updateUser } from './supabase';
+import { prisma } from './prisma';
 
 export interface AuthenticatedUser {
   id: string; // Internal database ID
@@ -21,37 +21,44 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
     }
 
     // Check if user exists in our database
-    let dbUser = await getUserByWhopId(whopUser.id);
+    let dbUser = await prisma.user.findUnique({
+      where: { whopUserId: whopUser.id }
+    });
     
     // Check if user is a creator
     const isCreator = await verifyCreatorStatus(whopUser.id);
     
     if (!dbUser) {
       // Create new user in our database
-      dbUser = await createUser({
-        whop_user_id: whopUser.id,
-        email: whopUser.email,
-        username: whopUser.username,
-        avatar_url: whopUser.avatar_url,
-        is_creator: isCreator,
+      dbUser = await prisma.user.create({
+        data: {
+          whopUserId: whopUser.id,
+          email: whopUser.email,
+          username: whopUser.username,
+          avatarUrl: whopUser.avatar_url,
+          isCreator: isCreator,
+        }
       });
     } else {
       // Update existing user with latest info
-      dbUser = await updateUser(dbUser.id, {
-        email: whopUser.email,
-        username: whopUser.username,
-        avatar_url: whopUser.avatar_url,
-        is_creator: isCreator,
+      dbUser = await prisma.user.update({
+        where: { id: dbUser.id },
+        data: {
+          email: whopUser.email,
+          username: whopUser.username,
+          avatarUrl: whopUser.avatar_url,
+          isCreator: isCreator,
+        }
       });
     }
 
     return {
       id: dbUser.id,
-      whop_user_id: dbUser.whop_user_id,
+      whop_user_id: dbUser.whopUserId,
       email: dbUser.email,
       username: dbUser.username,
-      avatar_url: dbUser.avatar_url,
-      is_creator: dbUser.is_creator,
+      avatar_url: dbUser.avatarUrl,
+      is_creator: dbUser.isCreator,
     };
   } catch (error) {
     console.error('Authentication error:', error);
