@@ -108,8 +108,9 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
     setShowFundingModal(false);
   };
 
-  const validateRewardAmount = (value: number) => {
+  const validateRewardAmount = (value: number | undefined) => {
     if (selectedRewardType === 'SUBSCRIPTION') return true;
+    if (!value) return 'Reward amount is required';
     
     const validation = validateMinimumReward(value);
     return validation.isValid || validation.message;
