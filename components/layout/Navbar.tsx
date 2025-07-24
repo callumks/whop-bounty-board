@@ -60,13 +60,7 @@ export default function Navbar({ user }: NavbarProps) {
           {/* Right side */}
           <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
             {/* Note: In embedded Whop apps, users are always authenticated */}
-            <Link
-              href="/create-challenge"
-              className="btn btn-primary btn-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Challenge
-            </Link>
+            {/* Challenge creation is only available to Whop creators/owners */}
             
             {/* User menu - will be populated via client-side */}
             <div className="relative">
@@ -159,13 +153,6 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
             
             <div className="mt-3 space-y-1">
-              <Link
-                href="/create-challenge"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              >
-                Create Challenge
-              </Link>
-              
               <Link
                 href="/profile"
                 className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100"

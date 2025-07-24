@@ -238,17 +238,7 @@ export default function ProfilePage() {
               </p>
             </a>
 
-            {profile.isCreator && (
-              <a
-                href="/create-challenge"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <h4 className="font-medium text-gray-900">Create New Challenge</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Launch a new user-generated content challenge
-                </p>
-              </a>
-            )}
+            {/* Note: Challenge creation moved to dedicated creator section */}
 
             <a
               href="/challenges"
