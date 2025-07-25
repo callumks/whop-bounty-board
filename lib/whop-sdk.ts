@@ -9,54 +9,7 @@ export interface WhopUser {
   discord_id?: string;
 }
 
-// Fetch user data from Whop API
-async function fetchWhopUserData(userId: string): Promise<WhopUser | null> {
-  try {
-    const apiKey = process.env.WHOP_API_KEY;
-    console.log('=== DEBUG: Whop API Call ===');
-    console.log('API Key present:', !!apiKey);
-    console.log('User ID:', userId);
-    
-    if (!apiKey) {
-      console.log('No WHOP_API_KEY found in environment');
-      return null;
-    }
 
-    const apiUrl = `https://api.whop.com/api/v5/users/${userId}`;
-    console.log('API URL:', apiUrl);
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log('Response status:', response.status);
-    // console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log('API Error Response:', errorText);
-      console.log('Failed to fetch user from Whop API:', response.status);
-      return null;
-    }
-
-    const userData = await response.json();
-    console.log('User data received:', userData);
-    
-    return {
-      id: userId,
-      email: userData.email || `${userId}@whop.temp`,
-      username: userData.username || userId.replace('user_', ''),
-      avatar_url: userData.profile_pic_url,
-      discord_id: userData.discord_id,
-    };
-  } catch (error) {
-    console.error('Error fetching user data from Whop:', error);
-    return null;
-  }
-}
 
 // Get user from Whop headers (in embedded app context)
 export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | null> {
@@ -100,18 +53,13 @@ export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | n
         return null;
       }
 
-      // Fetch real user data from Whop API
-      const whopUser = await fetchWhopUserData(userId);
+      // Use a more readable username format
+      const displayName = userData.username || 'WhopUser';
       
-      if (whopUser) {
-        return whopUser;
-      }
-      
-      // Fallback to basic user object if API call fails
       return {
         id: userId,
-        email: `${userId}@whop.temp`, // Temporary fallback
-        username: userData.username || userId.replace('user_', ''),
+        email: `${displayName}@whop.temp`,
+        username: displayName,
         avatar_url: undefined,
         discord_id: undefined,
       };
