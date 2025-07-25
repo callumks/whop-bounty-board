@@ -53,7 +53,7 @@ export default function FundChallengePage() {
         body: JSON.stringify({
           challengeId: challenge.id,
           amount: challenge.rewardAmount,
-          creatorId: challenge.id // This should be the creator's user ID
+          creatorId: challenge.creatorId
         })
       });
 
