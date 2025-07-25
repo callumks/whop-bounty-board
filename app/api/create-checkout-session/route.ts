@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getUserFromHeaders } from '@/lib/whop-sdk';
+import { getUserFromHeaders, whopSdk } from '@/lib/whop-sdk';
 
 export async function POST(request: NextRequest) {
   try {
-    const { challengeId, amount, creatorId } = await request.json();
+    const body = await request.json();
+    const { challengeId, amount, creatorId, description } = body;
 
     // Get authenticated user from Whop headers
     const whopUser = await getUserFromHeaders(request.headers);
@@ -16,17 +17,17 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.upsert({
       where: { whopUserId: whopUser.id },
       update: {
-        email: whopUser.email,
-        username: whopUser.username,
-        avatarUrl: whopUser.avatar_url,
-      },
+        email: whopUser.email || '',
+        username: whopUser.username || '',
+        avatarUrl: whopUser.avatar_url || null,
+      } as any,
       create: {
         whopUserId: whopUser.id,
-        email: whopUser.email,
-        username: whopUser.username,
-        avatarUrl: whopUser.avatar_url,
+        email: whopUser.email || '',
+        username: whopUser.username || '',
+        avatarUrl: whopUser.avatar_url || null,
         isCreator: false,
-      },
+      } as any,
     });
 
     // Validate input
@@ -58,54 +59,59 @@ export async function POST(request: NextRequest) {
     const platformFee = amount * platformFeeRate;
     const totalAmount = amount + platformFee;
 
-    // Generate unique session ID
-    const timestamp = new Date().getTime();
-    const randomSuffix = Math.floor(Math.random() * 1000000).toString();
-    const sessionId = `ch_${timestamp}_${randomSuffix}`;
-    
-    // Calculate expiry time (30 minutes from now)
-    const expiresAt = new Date(timestamp + 30 * 60 * 1000);
-
-    // Create payment session in database
-    const paymentSession = await prisma.paymentSession.create({
-      data: {
-        sessionId,
-        challengeId,
-        userId: user.id,
-        amount,
-        platformFee,
-        totalAmount,
-        currency: 'USD',
+    try {
+      // Use Whop's chargeUser API for proper payment processing  
+      const amountInCents = (totalAmount * 100) >> 0; // Convert to cents and round down
+      const result = await whopSdk.payments.chargeUser({
+        amount: amountInCents,
+        currency: "usd",
+        userId: whopUser.id,
+        description: description || `Challenge funding for: ${challenge.title}`,
         metadata: {
+          challengeId: challengeId,
           challengeTitle: challenge.title,
-          creatorId,
-          type: 'challenge_funding'
+          creatorId: creatorId,
+          originalAmount: `${amount}`,
+          platformFee: `${platformFee}`,
+          totalAmount: `${totalAmount}`,
+          type: "challenge_funding",
+          userId: user.id,
         },
-        status: 'PENDING',
-        expiresAt
+      });
+
+      if (result.status === "success") {
+        // Payment completed immediately (rare case)
+        return NextResponse.json({ 
+          success: true, 
+          status: "completed",
+          message: "Payment completed successfully"
+        });
+      } else if (result.status === "needs_action" && result.inAppPurchase) {
+        // Payment needs user confirmation (most common case)
+        return NextResponse.json({ 
+          success: true, 
+          status: "needs_action",
+          inAppPurchase: result.inAppPurchase,
+          amount: amount,
+          platformFee: platformFee,
+          totalAmount: totalAmount
+        });
+      } else {
+        console.error("Unexpected chargeUser response:", result);
+        return NextResponse.json({ 
+          error: "Unexpected response from payment processor" 
+        }, { status: 500 });
       }
-    });
+      
+    } catch (whopError: any) {
+      console.error("Whop chargeUser API error:", whopError);
+      return NextResponse.json({ 
+        error: "Failed to create charge with payment processor",
+        details: whopError?.message || 'Unknown error'
+      }, { status: 500 });
+    }
 
-    // Generate Whop checkout URL
-    // In production, this would use the actual Whop API to create checkout sessions
-    const checkoutUrl = `https://whop.com/checkout?session=${sessionId}&amount=${totalAmount}&currency=USD`;
-
-    // Update payment session with checkout URL
-    await prisma.paymentSession.update({
-      where: { id: paymentSession.id },
-      data: { checkoutUrl }
-    });
-
-    return NextResponse.json({
-      sessionId,
-      checkoutUrl,
-      amount,
-      platformFee,
-      totalAmount,
-      currency: 'USD'
-    });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating checkout session:', error);
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
