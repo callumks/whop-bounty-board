@@ -148,7 +148,7 @@ export async function checkUserAccess(userId: string, companyId?: string): Promi
 // Check if user is company owner
 export async function checkUserCompanyOwnership(headers: Headers): Promise<boolean> {
   try {
-    const user = getUserFromHeaders(headers);
+    const user = await getUserFromHeaders(headers);
     const appContext = getAppContext(headers);
     
     if (!user || !appContext?.companyId) {
