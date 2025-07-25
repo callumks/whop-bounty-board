@@ -79,14 +79,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      if (result.status === "success") {
+      if (result && result.status === "success") {
         // Payment completed immediately (rare case)
         return NextResponse.json({ 
           success: true, 
           status: "completed",
           message: "Payment completed successfully"
         });
-      } else if (result.status === "needs_action" && result.inAppPurchase) {
+      } else if (result && result.status === "needs_action" && result.inAppPurchase) {
         // Payment needs user confirmation (most common case)
         return NextResponse.json({ 
           success: true, 
