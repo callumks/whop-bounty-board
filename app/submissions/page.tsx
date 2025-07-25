@@ -1,5 +1,8 @@
 'use client';
 
+// Prevent prerendering - this page uses dynamic client functionality
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import { ExternalLink, Clock, CheckCircle, XCircle, DollarSign, AlertCircle } from 'lucide-react';
 import { formatDate, formatCurrency, getStatusColor } from '@/lib/utils';

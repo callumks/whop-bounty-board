@@ -1,5 +1,8 @@
 'use client';
 
+// Prevent prerendering - this page uses dynamic client functionality
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, DollarSign, Users, Clock, AlertCircle, CheckCircle2, Wallet } from 'lucide-react';

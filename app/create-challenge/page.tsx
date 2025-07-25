@@ -1,5 +1,8 @@
 'use client';
 
+// Prevent prerendering - this page uses dynamic client functionality
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CreateChallengeFormV2 from '@/components/challenge/CreateChallengeFormV2';

@@ -1,5 +1,8 @@
 'use client';
 
+// Prevent prerendering - this page uses dynamic client functionality
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import { User, Award, TrendingUp, Calendar, Settings, ExternalLink } from 'lucide-react';
 
