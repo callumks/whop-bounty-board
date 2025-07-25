@@ -41,8 +41,10 @@ export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | n
     console.log('=== DEBUG: Extracted User ID ===');
     console.log('User ID from JWT:', userId);
 
-    // Get the current user's data using the CORRECT SDK method
-    const result = await whopSdk.users.getCurrentUser();
+    // Get the current user's data using the CORRECT SDK method with user context
+    const result = await whopSdk
+      .withUser(userId)  // This sets the x-on-behalf-of header
+      .users.getCurrentUser();
     
     if (!result.user) {
       console.log('No user data returned from getCurrentUser');
