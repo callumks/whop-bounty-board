@@ -32,6 +32,12 @@ export default function DashboardPage() {
     try {
       const response = await fetch('/api/user/challenges');
       if (!response.ok) {
+        // Check if it's an auth error vs other error  
+        if (response.status === 401) {
+          console.log('User not authenticated - this is normal during development');
+          setChallenges([]);
+          return;
+        }
         throw new Error('Failed to fetch challenges');
       }
       const data = await response.json();

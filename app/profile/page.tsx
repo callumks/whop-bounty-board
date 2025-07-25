@@ -32,12 +32,17 @@ export default function ProfilePage() {
     try {
       const response = await fetch('/api/user/profile');
       if (!response.ok) {
+        // Check if it's an auth error vs other error
+        if (response.status === 401) {
+          setError('Please access this app through Whop to view your profile');
+          return;
+        }
         throw new Error('Failed to fetch profile');
       }
       const data = await response.json();
       setProfile(data.profile);
     } catch (err) {
-      setError('Failed to load profile');
+      setError('Failed to load profile - please try refreshing or contact support');
       console.error('Profile fetch error:', err);
     } finally {
       setLoading(false);

@@ -42,10 +42,24 @@ export default function ChallengesPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [rewardTypeFilter, setRewardTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [userStatus, setUserStatus] = useState<{isCreator: boolean} | null>(null);
 
   useEffect(() => {
     fetchChallenges();
+    fetchUserStatus();
   }, [searchQuery, rewardTypeFilter, sortBy]);
+
+  const fetchUserStatus = async () => {
+    try {
+      const response = await fetch('/api/user/status');
+      if (response.ok) {
+        const data = await response.json();
+        setUserStatus({ isCreator: data.user?.is_whop_owner || false });
+      }
+    } catch (error) {
+      console.log('Could not fetch user status');
+    }
+  };
 
   const fetchChallenges = async () => {
     try {
@@ -183,9 +197,11 @@ export default function ChallengesPage({
                 : 'No active challenges available at the moment. Check back soon!'
               }
             </p>
-            <Link href="/create-challenge" className="btn btn-primary">
-              Create a Challenge
-            </Link>
+            {userStatus?.isCreator && (
+              <Link href="/create-challenge" className="btn btn-primary">
+                Create a Challenge
+              </Link>
+            )}
           </div>
         )}
 

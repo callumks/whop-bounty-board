@@ -48,12 +48,20 @@ export default function SubmissionsPage() {
     try {
       const response = await fetch('/api/submissions');
       if (!response.ok) {
+        // Check if it's an auth error vs other error
+        if (response.status === 401) {
+          console.log('User not authenticated - this is normal during development');
+          setSubmissions([]);
+          return;
+        }
         throw new Error('Failed to fetch submissions');
       }
       const data = await response.json();
       setSubmissions(data.submissions || []);
     } catch (err) {
-      setError('Failed to load submissions');
+      console.error('Submissions fetch error:', err);
+      // Don't show error for empty submissions - just show empty state
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }
