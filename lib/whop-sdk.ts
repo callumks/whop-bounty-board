@@ -29,14 +29,9 @@ export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | n
   try {
     console.log('=== DEBUG: Whop SDK Authentication (Correct Method) ===');
     
-    // Convert Headers to a format compatible with SDK
-    const headersList: { [key: string]: string } = {};
-    headers.forEach((value, key) => {
-      headersList[key] = value;
-    });
-    
     // Extract and verify the user ID from the JWT token using Whop SDK
-    const { userId } = await whopSdk.verifyUserToken(headersList);
+    // Pass the Headers object directly instead of converting to plain object
+    const { userId } = await whopSdk.verifyUserToken(headers);
     
     if (!userId) {
       console.log('No valid user ID from JWT token');
