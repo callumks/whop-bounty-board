@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import * as crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const signature = request.headers.get('whop-signature');
     
-    // TODO: Verify webhook signature with Whop
-    // For now, we'll skip signature verification
+    // Verify webhook signature
+    if (!signature) {
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    }
+    
+    if (!verifyWebhookSignature(body, signature)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
     
     const event = JSON.parse(body);
     
@@ -59,7 +66,7 @@ async function handlePaymentSuccess(data: any) {
     });
 
     // Create payment record
-    const payment = await prisma.payment.create({
+    await prisma.payment.create({
       data: {
         challengeId: paymentSession.challengeId,
         userId: paymentSession.userId,
@@ -74,47 +81,24 @@ async function handlePaymentSuccess(data: any) {
       }
     });
 
-    // If this is challenge funding, update challenge status
-    if (paymentSession.type === 'CHALLENGE_FUNDING' && paymentSession.challengeId) {
-      await prisma.challenge.update({
-        where: { id: paymentSession.challengeId },
-        data: {
-          status: 'FUNDED',
-          isFunded: true,
-          fundingMethod: 'WHOP_CHECKOUT'
-        }
-      });
-    }
-
-    // If this is credit deposit, update user balance
-    if (paymentSession.type === 'CREDIT_DEPOSIT') {
-      const user = await prisma.user.findUnique({
-        where: { id: paymentSession.userId }
-      });
-
-      if (user) {
-        const newBalance = user.creditBalance + paymentSession.amount;
-        
-        await prisma.user.update({
-          where: { id: paymentSession.userId },
-          data: { creditBalance: newBalance }
-        });
-
-        // Create credit transaction record
-        await prisma.creditTransaction.create({
-          data: {
-            userId: paymentSession.userId,
-            type: 'DEPOSIT',
-            amount: paymentSession.amount,
-            balance: newBalance,
-            paymentId: payment.id,
-            description: 'Credit deposit via Whop checkout'
-          }
-        });
+    // Update challenge status to funded and then active
+    await prisma.challenge.update({
+      where: { id: paymentSession.challengeId },
+      data: {
+        status: 'FUNDED',
+        isFunded: true
       }
-    }
+    });
 
-    console.log('Payment success processed:', session_id);
+    // Immediately activate the challenge after funding
+    await prisma.challenge.update({
+      where: { id: paymentSession.challengeId },
+      data: {
+        status: 'ACTIVE'
+      }
+    });
+
+    console.log('Challenge funded and activated:', paymentSession.challengeId);
   } catch (error) {
     console.error('Error processing payment success:', error);
   }
@@ -163,5 +147,35 @@ async function handlePaymentFailed(data: any) {
     console.log('Payment failed processed:', session_id, error_message);
   } catch (error) {
     console.error('Error processing payment failure:', error);
+  }
+}
+
+// Verify webhook signature from Whop
+function verifyWebhookSignature(payload: string, signature: string): boolean {
+  try {
+    const webhookSecret = process.env.WHOP_WEBHOOK_SECRET;
+    
+    if (!webhookSecret) {
+      console.error('WHOP_WEBHOOK_SECRET environment variable not set');
+      return false;
+    }
+
+    // Remove any prefix like 'sha256=' if present
+    const cleanSignature = signature.replace(/^sha256=/, '');
+    
+    // Create expected signature
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(payload, 'utf8')
+      .digest('hex');
+    
+    // Compare signatures safely
+    return crypto.timingSafeEqual(
+      Buffer.from(cleanSignature, 'hex'),
+      Buffer.from(expectedSignature, 'hex')
+    );
+  } catch (error) {
+    console.error('Error verifying webhook signature:', error);
+    return false;
   }
 } 

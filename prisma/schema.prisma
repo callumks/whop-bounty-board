@@ -19,7 +19,6 @@ model User {
   isCreator       Boolean  @default(false)
   walletAddress   String?
   stripeCustomerId String?
-  creditBalance   Float    @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -27,7 +26,6 @@ model User {
   challenges       Challenge[]
   submissions      Submission[]
   payments         Payment[]
-  creditTransactions CreditTransaction[]
   paymentSessions  PaymentSession[]
 
   @@map("users")
@@ -50,7 +48,6 @@ model Challenge {
   whopCompanyId   String?
   status          String   @default("DRAFT") // 'DRAFT' | 'FUNDED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
   isFunded        Boolean  @default(false)
-  fundingMethod   String?  // 'WHOP_CHECKOUT' | 'CREDITS'
   totalSubmissions Int     @default(0)
   approvedSubmissions Int  @default(0)
   createdAt       DateTime @default(now())
@@ -91,8 +88,8 @@ model Payment {
   challengeId           String?
   userId                String
   submissionId          String?
-  type                  String    // 'FUNDING' | 'PAYOUT' | 'PLATFORM_FEE' | 'BUYOUT_FEE' | 'CREDIT_DEPOSIT'
-  method                String    // 'WHOP' | 'CREDITS' | 'STRIPE' | 'CRYPTO'
+  type                  String    // 'FUNDING' | 'PAYOUT' | 'PLATFORM_FEE' | 'BUYOUT_FEE'
+  method                String    // 'WHOP' | 'STRIPE' | 'CRYPTO'
   amount                Float
   platformFee           Float     @default(0)
   currency              String    @default("USD")
@@ -113,13 +110,12 @@ model Payment {
   @@map("payments")
 }
 
-// New model for tracking payment sessions
+// Model for tracking payment sessions
 model PaymentSession {
   id              String    @id @default(uuid())
   sessionId       String    @unique // Whop checkout session ID
-  challengeId     String?
+  challengeId     String
   userId          String
-  type            String    // 'CHALLENGE_FUNDING' | 'CREDIT_DEPOSIT'
   amount          Float
   platformFee     Float
   totalAmount     Float     // amount + platformFee
@@ -133,27 +129,10 @@ model PaymentSession {
   updatedAt       DateTime  @updatedAt
 
   // Relations
-  challenge       Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challenge       Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("payment_sessions")
 }
 
-// New model for credit transactions
-model CreditTransaction {
-  id              String    @id @default(uuid())
-  userId          String
-  type            String    // 'DEPOSIT' | 'WITHDRAWAL' | 'CHALLENGE_FUNDING' | 'REFUND'
-  amount          Float
-  balance         Float     // Balance after this transaction
-  challengeId     String?
-  paymentId       String?
-  description     String?
-  metadata        Json?
-  createdAt       DateTime  @default(now())
-
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("credit_transactions")
-} 
+ 

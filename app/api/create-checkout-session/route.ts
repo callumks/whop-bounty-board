@@ -41,14 +41,44 @@ export async function POST(request: NextRequest) {
     const platformFee = amount * platformFeeRate;
     const totalAmount = amount + platformFee;
 
-    // Create a simple session ID
-    const sessionId = 'ch_' + Date.now() + '_' + (Math.random() * 1000000).toFixed(0);
+    // Generate unique session ID
+    const timestamp = new Date().getTime();
+    const randomSuffix = Math.floor(Math.random() * 1000000).toString();
+    const sessionId = `ch_${timestamp}_${randomSuffix}`;
     
-    // Create checkout URL using the simplified whop SDK
-    const checkoutUrl = `https://whop.com/checkout?plan=plan_example&amount=${totalAmount}`;
+    // Calculate expiry time (30 minutes from now)
+    const expiresAt = new Date(timestamp + 30 * 60 * 1000);
 
-    // TODO: In a real implementation, create payment session in database
-    // For now, just return the checkout information
+    // Create payment session in database
+    const paymentSession = await prisma.paymentSession.create({
+      data: {
+        sessionId,
+        challengeId,
+        userId: user.id,
+        amount,
+        platformFee,
+        totalAmount,
+        currency: 'USD',
+        metadata: {
+          challengeTitle: challenge.title,
+          creatorId,
+          type: 'challenge_funding'
+        },
+        status: 'PENDING',
+        expiresAt
+      }
+    });
+
+    // Generate Whop checkout URL
+    // In production, this would use the actual Whop API to create checkout sessions
+    const checkoutUrl = `https://whop.com/checkout?session=${sessionId}&amount=${totalAmount}&currency=USD`;
+
+    // Update payment session with checkout URL
+    await prisma.paymentSession.update({
+      where: { id: paymentSession.id },
+      data: { checkoutUrl }
+    });
+
     return NextResponse.json({
       sessionId,
       checkoutUrl,
