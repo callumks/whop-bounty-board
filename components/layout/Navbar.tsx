@@ -59,8 +59,15 @@ export default function Navbar({ user }: NavbarProps) {
           {/* Logo and main nav */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-2xl font-bold gradient-bg bg-clip-text text-transparent">
-                ChallengeHub
+              <Link href="/" className="flex items-center space-x-2">
+                <img 
+                  src="/images/logo.svg" 
+                  alt="Challenges Logo" 
+                  className="h-8 w-8"
+                />
+                <span className="text-2xl font-bold gradient-bg bg-clip-text text-transparent">
+                  Challenges
+                </span>
               </Link>
             </div>
             

@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'ChallengeHub - Whop Creator Challenges',
+  title: 'Challenges - Whop Creator Challenges',
   description: 'Launch user-generated content challenges and reward participants with USD, USDC, or subscription passes.',
   keywords: 'whop, challenges, ugc, content creation, rewards',
 }

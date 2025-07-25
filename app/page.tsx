@@ -55,7 +55,7 @@ export default async function HomePage() {
               <span className="text-blue-200">Reward Creators</span>
             </h1>
             <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-              ChallengeHub connects Whop creators with their communities through 
+              Challenges connects Whop creators with their communities through 
               user-generated content challenges. Reward participants with USD, USDC, 
               or subscription passes.
             </p>
@@ -77,7 +77,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose ChallengeHub?
+              Why Choose Challenges?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Built specifically for Whop creators to engage their communities 
