@@ -1,6 +1,5 @@
 // Simple Whop Integration for ChallengeHub
 // Using embedded checkout approach from https://dev.whop.com/features/checkout-embed
-import { WhopSDK as CoreWhopSDK } from '@whop-sdk/core';
 
 export interface WhopUser {
   id: string;
@@ -10,38 +9,68 @@ export interface WhopUser {
   discord_id?: string;
 }
 
-// Create Whop SDK instance  
-export const whopSdk = new CoreWhopSDK();
-
 
 
 // Get user from Whop headers (in embedded app context)
 export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | null> {
   try {
-    console.log('=== DEBUG: Whop SDK Authentication ===');
+    // Get Whop JWT token
+    const token = headers.get('x-whop-user-token');
+    const appId = headers.get('x-whop-app-id');
     
-    // Use Whop SDK to get current user
-    const result = await whopSdk.users.getCurrentUser();
+    console.log('=== DEBUG: Whop Authentication ===');
+    console.log('App ID:', appId);
+    console.log('Token present:', !!token);
     
-    if (!result.user) {
-      console.log('No user data returned from Whop SDK');
+    if (!token) {
+      console.log('No x-whop-user-token found');
       return null;
     }
 
-    const userData = result.user;
-    console.log('=== DEBUG: Whop SDK User Data ===');
-    console.log('User from SDK:', userData);
-    
-    return {
-      id: userData.id,
-      email: userData.email || `${userData.username || 'user'}@whop.temp`,
-      username: userData.username || userData.name || 'WhopUser',
-      avatar_url: userData.profilePicture?.sourceUrl,
-      discord_id: undefined,
-    };
-    
+    // Decode JWT token (simple base64 decode for payload)
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.log('Invalid JWT format');
+        return null;
+      }
+
+      // Decode the payload (middle part)
+      const payload = parts[1];
+      // Add padding if needed for base64 decode
+      const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+      const decodedPayload = atob(paddedPayload);
+      const userData = JSON.parse(decodedPayload);
+      
+      console.log('=== DEBUG: JWT Payload ===');
+      console.log('Decoded payload:', userData);
+      
+      // Extract user information from JWT
+      const userId = userData.sub; // subject is usually the user ID
+      
+      if (!userId) {
+        console.log('No user ID found in JWT');
+        return null;
+      }
+
+      // Create a better display name from user ID
+      const userIdPart = userId.replace('user_', '');
+      const displayName = userData.username || `User${userIdPart.slice(0, 4)}`;
+      
+      return {
+        id: userId,
+        email: `${displayName.toLowerCase()}@whop.app`,
+        username: displayName,
+        avatar_url: undefined,
+        discord_id: undefined,
+      };
+      
+    } catch (jwtError) {
+      console.error('Failed to decode JWT:', jwtError);
+      return null;
+    }
   } catch (error) {
-    console.error('Failed to get user from Whop SDK:', error);
+    console.error('Failed to parse user from headers:', error);
     return null;
   }
 }
