@@ -3,13 +3,31 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-// Add Whop iframe SDK hook import
-let useIframeSdk: any = null;
-try {
-  const whopReact = require('@whop/react');
-  useIframeSdk = whopReact.useIframeSdk;
-} catch (error) {
-  console.warn('Whop React SDK not available:', error);
+// Build-safe Whop iframe SDK hook
+function useWhopIframeSdk() {
+  const [iframeSdk, setIframeSdk] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    
+    const loadIframeSdk = async () => {
+      try {
+        if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WHOP_APP_ID) {
+          const whopReact = await import('@whop/react');
+          // Use the hook from the imported module
+          const sdk = whopReact.useIframeSdk();
+          setIframeSdk(sdk);
+        }
+      } catch (error) {
+        console.warn('Failed to load Whop iframe SDK:', error);
+      }
+    };
+
+    loadIframeSdk();
+  }, []);
+
+  return isClient ? iframeSdk : null;
 }
 
 interface Challenge {
@@ -36,7 +54,7 @@ export default function FundChallengePage() {
   const [error, setError] = useState<string>();
 
   // Get iframe SDK if available
-  const iframeSdk = useIframeSdk ? useIframeSdk() : null;
+  const iframeSdk = useWhopIframeSdk();
 
   useEffect(() => {
     fetchChallenge();
