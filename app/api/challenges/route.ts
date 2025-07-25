@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         description: challengeData.description,
         requiredTags: challengeData.requiredTags || [],
         rewardType: challengeData.rewardType,
-        rewardAmount: challengeData.rewardAmount || 0,
+        rewardAmount: +(challengeData.rewardAmount) || 0,
         platformFee: feeCalculation?.platformFee || 0,
         netPayout: feeCalculation?.netPayout || challengeData.rewardAmount || 0,
         buyoutFeePaid: challengeData.buyoutFeePaid || false,
