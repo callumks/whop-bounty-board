@@ -12,9 +12,31 @@ export interface WhopUser {
 // Get user from Whop headers (in embedded app context)
 export function getUserFromHeaders(headers: Headers): WhopUser | null {
   try {
-    const userId = headers.get('x-whop-user-id');
-    const userEmail = headers.get('x-whop-user-email');
-    const username = headers.get('x-whop-username');
+    // Log all headers for debugging
+    console.log('=== DEBUG: All headers received ===');
+    headers.forEach((value, key) => {
+      if (key.toLowerCase().includes('whop') || key.toLowerCase().includes('x-')) {
+        console.log(`${key}: ${value}`);
+      }
+    });
+    
+    // Try multiple possible header formats
+    const userId = headers.get('x-whop-user-id') || 
+                   headers.get('whop-user-id') ||
+                   headers.get('user-id');
+                   
+    const userEmail = headers.get('x-whop-user-email') || 
+                      headers.get('whop-user-email') ||
+                      headers.get('user-email');
+                      
+    const username = headers.get('x-whop-username') || 
+                     headers.get('whop-username') ||
+                     headers.get('username');
+    
+    console.log('=== DEBUG: Extracted values ===');
+    console.log('userId:', userId);
+    console.log('userEmail:', userEmail);
+    console.log('username:', username);
     
     if (!userId || !userEmail || !username) {
       return null;
@@ -24,8 +46,12 @@ export function getUserFromHeaders(headers: Headers): WhopUser | null {
       id: userId,
       email: userEmail,
       username: username,
-      avatar_url: headers.get('x-whop-avatar-url') || undefined,
-      discord_id: headers.get('x-whop-discord-id') || undefined,
+      avatar_url: headers.get('x-whop-avatar-url') || 
+                 headers.get('whop-avatar-url') || 
+                 headers.get('avatar-url') || undefined,
+      discord_id: headers.get('x-whop-discord-id') || 
+                 headers.get('whop-discord-id') || 
+                 headers.get('discord-id') || undefined,
     };
   } catch (error) {
     console.error('Failed to parse user from headers:', error);
