@@ -13,24 +13,37 @@ export interface WhopUser {
 async function fetchWhopUserData(userId: string): Promise<WhopUser | null> {
   try {
     const apiKey = process.env.WHOP_API_KEY;
+    console.log('=== DEBUG: Whop API Call ===');
+    console.log('API Key present:', !!apiKey);
+    console.log('User ID:', userId);
+    
     if (!apiKey) {
-      console.log('No WHOP_API_KEY found');
+      console.log('No WHOP_API_KEY found in environment');
       return null;
     }
 
-    const response = await fetch(`https://api.whop.com/api/v3/users/${userId}`, {
+    const apiUrl = `https://api.whop.com/api/v5/users/${userId}`;
+    console.log('API URL:', apiUrl);
+
+    const response = await fetch(apiUrl, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
     });
 
+    console.log('Response status:', response.status);
+    // console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.log('API Error Response:', errorText);
       console.log('Failed to fetch user from Whop API:', response.status);
       return null;
     }
 
     const userData = await response.json();
+    console.log('User data received:', userData);
     
     return {
       id: userId,
