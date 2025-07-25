@@ -12,47 +12,59 @@ export interface WhopUser {
 // Get user from Whop headers (in embedded app context)
 export function getUserFromHeaders(headers: Headers): WhopUser | null {
   try {
-    // Log all headers for debugging
-    console.log('=== DEBUG: All headers received ===');
-    headers.forEach((value, key) => {
-      if (key.toLowerCase().includes('whop') || key.toLowerCase().includes('x-')) {
-        console.log(`${key}: ${value}`);
-      }
-    });
+    // Get Whop JWT token
+    const token = headers.get('x-whop-user-token');
+    const appId = headers.get('x-whop-app-id');
     
-    // Try multiple possible header formats
-    const userId = headers.get('x-whop-user-id') || 
-                   headers.get('whop-user-id') ||
-                   headers.get('user-id');
-                   
-    const userEmail = headers.get('x-whop-user-email') || 
-                      headers.get('whop-user-email') ||
-                      headers.get('user-email');
-                      
-    const username = headers.get('x-whop-username') || 
-                     headers.get('whop-username') ||
-                     headers.get('username');
+    console.log('=== DEBUG: Whop Authentication ===');
+    console.log('App ID:', appId);
+    console.log('Token present:', !!token);
     
-    console.log('=== DEBUG: Extracted values ===');
-    console.log('userId:', userId);
-    console.log('userEmail:', userEmail);
-    console.log('username:', username);
-    
-    if (!userId || !userEmail || !username) {
+    if (!token) {
+      console.log('No x-whop-user-token found');
       return null;
     }
 
-    return {
-      id: userId,
-      email: userEmail,
-      username: username,
-      avatar_url: headers.get('x-whop-avatar-url') || 
-                 headers.get('whop-avatar-url') || 
-                 headers.get('avatar-url') || undefined,
-      discord_id: headers.get('x-whop-discord-id') || 
-                 headers.get('whop-discord-id') || 
-                 headers.get('discord-id') || undefined,
-    };
+    // Decode JWT token (simple base64 decode for payload)
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.log('Invalid JWT format');
+        return null;
+      }
+
+      // Decode the payload (middle part)
+      const payload = parts[1];
+      // Add padding if needed for base64 decode
+      const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+      const decodedPayload = atob(paddedPayload);
+      const userData = JSON.parse(decodedPayload);
+      
+      console.log('=== DEBUG: JWT Payload ===');
+      console.log('Decoded payload:', userData);
+      
+      // Extract user information from JWT
+      const userId = userData.sub; // subject is usually the user ID
+      
+      if (!userId) {
+        console.log('No user ID found in JWT');
+        return null;
+      }
+
+      // For now, create a basic user object
+      // We'll need to call Whop API to get full user details
+      return {
+        id: userId,
+        email: `${userId}@whop.temp`, // Temporary until we can get real email
+        username: userData.username || userId.replace('user_', ''),
+        avatar_url: undefined,
+        discord_id: undefined,
+      };
+      
+    } catch (jwtError) {
+      console.error('Failed to decode JWT:', jwtError);
+      return null;
+    }
   } catch (error) {
     console.error('Failed to parse user from headers:', error);
     return null;
