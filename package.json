@@ -18,7 +18,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@whop-sdk/core": "^1.0.0",
+    "@whop/api": "^0.0.40",
     "autoprefixer": "^10.0.1",
     "clsx": "^2.0.0",
     "eslint": "^8",

@@ -1,6 +1,6 @@
 // Simple Whop Integration for ChallengeHub
-// Using embedded checkout approach from https://dev.whop.com/features/checkout-embed
-import { WhopSDK as CoreWhopSDK } from '@whop-sdk/core';
+// Using the correct @whop/api package as recommended by Whop AI
+import { WhopServerSdk } from "@whop/api";
 
 export interface WhopUser {
   id: string;
@@ -10,44 +10,60 @@ export interface WhopUser {
   discord_id?: string;
 }
 
-// Create Whop SDK instance with default config
-export const whopSdk = new CoreWhopSDK();
+// Create Whop SDK instance - CORRECT package with users service
+export const whopSdk = WhopServerSdk({
+  // Your app ID from the Whop dashboard
+  appId: process.env.NEXT_PUBLIC_WHOP_APP_ID || '',
+  
+  // Your app API key from the Whop dashboard  
+  appApiKey: process.env.WHOP_API_KEY || '',
+  
+  // Optional: company ID for company-scoped requests
+  companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID,
+});
 
 
 
-// Get user from Whop headers (in embedded app context)
+// Get user from Whop headers (in embedded app context) - CORRECT APPROACH
 export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | null> {
   try {
-    console.log('=== DEBUG: Whop SDK Authentication ===');
+    console.log('=== DEBUG: Whop SDK Authentication (Correct Method) ===');
     
-    // Get Whop JWT token to use as authorization
-    const token = headers.get('x-whop-user-token');
-    
-    if (!token) {
-      console.log('No x-whop-user-token found');
-      return null;
-    }
-
-    // Use Whop SDK to get current user info using OAuth service
-    const result = await whopSdk.oAuth.oauthInfo({
-      authorization: `Bearer ${token}`
+    // Convert Headers to a format compatible with SDK
+    const headersList: { [key: string]: string } = {};
+    headers.forEach((value, key) => {
+      headersList[key] = value;
     });
     
+    // Extract and verify the user ID from the JWT token using Whop SDK
+    const { userId } = await whopSdk.verifyUserToken(headersList);
+    
+    if (!userId) {
+      console.log('No valid user ID from JWT token');
+      return null;
+    }
+    
+    console.log('=== DEBUG: Extracted User ID ===');
+    console.log('User ID from JWT:', userId);
+
+    // Get the current user's data using the CORRECT SDK method
+    const result = await whopSdk.users.getCurrentUser();
+    
     if (!result.user) {
-      console.log('No user data returned from Whop SDK');
+      console.log('No user data returned from getCurrentUser');
       return null;
     }
 
     const userData = result.user;
-    console.log('=== DEBUG: Whop SDK User Data ===');
-    console.log('User from SDK:', userData);
+    console.log('=== DEBUG: Real User Data from Whop ===');
+    console.log('User from getCurrentUser():', userData);
     
     return {
-      id: userData.id || 'unknown',
-      email: userData.email || `user@whop.app`,
+      id: userData.id || userId,
+      email: userData.email || `${userData.username || 'user'}@whop.app`,
       username: userData.username || userData.name || 'WhopUser',
-      avatar_url: userData.profile_pic_url,
-      discord_id: undefined, // Discord ID would be in social_accounts if needed
+      avatar_url: userData.profilePicture?.sourceUrl,
+      discord_id: undefined, // Available in user data if needed
     };
     
   } catch (error) {
