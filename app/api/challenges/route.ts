@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
         rewardType: challengeData.rewardType,
         rewardAmount: +(challengeData.rewardAmount) || 0,
         platformFee: feeCalculation?.platformFee || 0,
-        netPayout: feeCalculation?.netPayout || challengeData.rewardAmount || 0,
+        netPayout: feeCalculation?.netPayout || +(challengeData.rewardAmount) || 0,
         buyoutFeePaid: challengeData.buyoutFeePaid || false,
         rewardSubscriptionId: challengeData.rewardSubscriptionId,
         deadline: new Date(challengeData.deadline),
