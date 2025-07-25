@@ -14,7 +14,7 @@ export interface AuthenticatedUser {
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
   try {
     // Get user from Whop headers (when app is embedded)
-    const whopUser = getUserFromHeaders(request.headers);
+    const whopUser = await getUserFromHeaders(request.headers);
     
     if (!whopUser) {
       return null;

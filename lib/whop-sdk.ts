@@ -9,8 +9,44 @@ export interface WhopUser {
   discord_id?: string;
 }
 
+// Fetch user data from Whop API
+async function fetchWhopUserData(userId: string): Promise<WhopUser | null> {
+  try {
+    const apiKey = process.env.WHOP_API_KEY;
+    if (!apiKey) {
+      console.log('No WHOP_API_KEY found');
+      return null;
+    }
+
+    const response = await fetch(`https://api.whop.com/api/v3/users/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.log('Failed to fetch user from Whop API:', response.status);
+      return null;
+    }
+
+    const userData = await response.json();
+    
+    return {
+      id: userId,
+      email: userData.email || `${userId}@whop.temp`,
+      username: userData.username || userId.replace('user_', ''),
+      avatar_url: userData.profile_pic_url,
+      discord_id: userData.discord_id,
+    };
+  } catch (error) {
+    console.error('Error fetching user data from Whop:', error);
+    return null;
+  }
+}
+
 // Get user from Whop headers (in embedded app context)
-export function getUserFromHeaders(headers: Headers): WhopUser | null {
+export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | null> {
   try {
     // Get Whop JWT token
     const token = headers.get('x-whop-user-token');
@@ -51,11 +87,17 @@ export function getUserFromHeaders(headers: Headers): WhopUser | null {
         return null;
       }
 
-      // For now, create a basic user object
-      // We'll need to call Whop API to get full user details
+      // Fetch real user data from Whop API
+      const whopUser = await fetchWhopUserData(userId);
+      
+      if (whopUser) {
+        return whopUser;
+      }
+      
+      // Fallback to basic user object if API call fails
       return {
         id: userId,
-        email: `${userId}@whop.temp`, // Temporary until we can get real email
+        email: `${userId}@whop.temp`, // Temporary fallback
         username: userData.username || userId.replace('user_', ''),
         avatar_url: undefined,
         discord_id: undefined,

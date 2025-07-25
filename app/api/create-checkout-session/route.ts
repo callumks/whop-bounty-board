@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { challengeId, amount, creatorId } = await request.json();
 
     // Get authenticated user from Whop headers
-    const user = getUserFromHeaders(request.headers);
+    const user = await getUserFromHeaders(request.headers);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
