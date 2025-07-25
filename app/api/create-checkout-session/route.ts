@@ -7,10 +7,27 @@ export async function POST(request: NextRequest) {
     const { challengeId, amount, creatorId } = await request.json();
 
     // Get authenticated user from Whop headers
-    const user = await getUserFromHeaders(request.headers);
-    if (!user) {
+    const whopUser = await getUserFromHeaders(request.headers);
+    if (!whopUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Ensure the user exists in our local database
+    const user = await prisma.user.upsert({
+      where: { whopUserId: whopUser.id },
+      update: {
+        email: whopUser.email,
+        username: whopUser.username,
+        avatarUrl: whopUser.avatar_url,
+      },
+      create: {
+        whopUserId: whopUser.id,
+        email: whopUser.email,
+        username: whopUser.username,
+        avatarUrl: whopUser.avatar_url,
+        isCreator: false,
+      },
+    });
 
     // Validate input
     if (!challengeId || !amount || !creatorId) {
