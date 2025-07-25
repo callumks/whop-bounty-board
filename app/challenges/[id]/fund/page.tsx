@@ -3,32 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-// Build-safe Whop iframe SDK hook
-function useWhopIframeSdk() {
-  const [iframeSdk, setIframeSdk] = useState<any>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    
-    const loadIframeSdk = async () => {
-      try {
-        if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_WHOP_APP_ID) {
-          const whopReact = await import('@whop/react');
-          // Use the hook from the imported module
-          const sdk = whopReact.useIframeSdk();
-          setIframeSdk(sdk);
-        }
-      } catch (error) {
-        console.warn('Failed to load Whop iframe SDK:', error);
-      }
-    };
-
-    loadIframeSdk();
-  }, []);
-
-  return isClient ? iframeSdk : null;
-}
+import { useIframeSdk } from '@whop/react';
 
 interface Challenge {
   id: string;
@@ -54,7 +29,7 @@ export default function FundChallengePage() {
   const [error, setError] = useState<string>();
 
   // Get iframe SDK if available
-  const iframeSdk = useWhopIframeSdk();
+  const iframeSdk = useIframeSdk();
 
   useEffect(() => {
     fetchChallenge();
@@ -119,7 +94,7 @@ export default function FundChallengePage() {
         const result = await iframeSdk.inAppPurchase(data.inAppPurchase);
         
         if (result.status === "ok") {
-          setReceiptId(result.data.receipt_id);
+          setReceiptId(result.data.receiptId);
           setError(undefined);
           // Payment successful - refresh challenge data
           await fetchChallenge();

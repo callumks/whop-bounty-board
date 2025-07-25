@@ -3,7 +3,7 @@
 // Prevent prerendering - this page uses dynamic client functionality
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { Search, Filter, Clock, Users, DollarSign } from 'lucide-react';
 import { formatCurrency, getTimeRemaining, getStatusColor } from '@/lib/utils';
@@ -35,11 +35,10 @@ interface ChallengesData {
   totalPages: number;
 }
 
-export default function ChallengesPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+export default function ChallengesPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const searchParams = use(props.searchParams);
   const [challengesData, setChallengesData] = useState<ChallengesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
