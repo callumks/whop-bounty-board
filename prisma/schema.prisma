@@ -19,13 +19,16 @@ model User {
   isCreator       Boolean  @default(false)
   walletAddress   String?
   stripeCustomerId String?
+  creditBalance   Float    @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
-  challenges      Challenge[]
-  submissions     Submission[]
-  payments        Payment[]
+  challenges       Challenge[]
+  submissions      Submission[]
+  payments         Payment[]
+  creditTransactions CreditTransaction[]
+  paymentSessions  PaymentSession[]
 
   @@map("users")
 }
@@ -45,8 +48,9 @@ model Challenge {
   deadline        DateTime
   visibility      String   // 'PUBLIC' | 'PRIVATE'
   whopCompanyId   String?
-  status          String   @default("DRAFT") // 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+  status          String   @default("DRAFT") // 'DRAFT' | 'FUNDED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
   isFunded        Boolean  @default(false)
+  fundingMethod   String?  // 'WHOP_CHECKOUT' | 'CREDITS'
   totalSubmissions Int     @default(0)
   approvedSubmissions Int  @default(0)
   createdAt       DateTime @default(now())
@@ -56,6 +60,7 @@ model Challenge {
   creator         User         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   submissions     Submission[]
   payments        Payment[]
+  paymentSessions PaymentSession[]
 
   @@map("challenges")
 }
@@ -83,23 +88,72 @@ model Submission {
 
 model Payment {
   id                    String    @id @default(uuid())
-  challengeId           String
+  challengeId           String?
   userId                String
   submissionId          String?
-  type                  String    // 'FUNDING' | 'PAYOUT' | 'PLATFORM_FEE' | 'BUYOUT_FEE'
-  method                String    // 'STRIPE' | 'CRYPTO' | 'SUBSCRIPTION'
-  amount                Float?
-  currency              String?
+  type                  String    // 'FUNDING' | 'PAYOUT' | 'PLATFORM_FEE' | 'BUYOUT_FEE' | 'CREDIT_DEPOSIT'
+  method                String    // 'WHOP' | 'CREDITS' | 'STRIPE' | 'CRYPTO'
+  amount                Float
+  platformFee           Float     @default(0)
+  currency              String    @default("USD")
+  whopReceiptId         String?
+  whopPlanId            String?
   stripePaymentIntentId String?
   cryptoTransactionHash String?
+  metadata              Json?
   status                String    @default("PENDING") // 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   // Relations
-  challenge             Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challenge             Challenge?  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   submission            Submission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
 
   @@map("payments")
+}
+
+// New model for tracking payment sessions
+model PaymentSession {
+  id              String    @id @default(uuid())
+  sessionId       String    @unique // Whop checkout session ID
+  challengeId     String?
+  userId          String
+  type            String    // 'CHALLENGE_FUNDING' | 'CREDIT_DEPOSIT'
+  amount          Float
+  platformFee     Float
+  totalAmount     Float     // amount + platformFee
+  currency        String    @default("USD")
+  metadata        Json?
+  status          String    @default("PENDING") // 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED'
+  checkoutUrl     String?
+  expiresAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  challenge       Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_sessions")
+}
+
+// New model for credit transactions
+model CreditTransaction {
+  id              String    @id @default(uuid())
+  userId          String
+  type            String    // 'DEPOSIT' | 'WITHDRAWAL' | 'CHALLENGE_FUNDING' | 'REFUND'
+  amount          Float
+  balance         Float     // Balance after this transaction
+  challengeId     String?
+  paymentId       String?
+  description     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_transactions")
 } 
