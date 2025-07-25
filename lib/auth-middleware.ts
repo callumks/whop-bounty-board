@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getUserFromHeaders, verifyCreatorStatus, checkUserCompanyOwnership } from './whop-sdk';
+import { getUserFromHeaders, checkUserCompanyOwnership } from './whop-sdk';
 import { prisma } from './prisma';
 
 export interface AuthenticatedUser {

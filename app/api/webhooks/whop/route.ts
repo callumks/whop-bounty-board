@@ -76,7 +76,7 @@ async function handlePaymentSuccess(data: any) {
         platformFee: paymentSession.platformFee,
         currency: paymentSession.currency,
         whopReceiptId: receipt_id,
-        metadata: paymentSession.metadata,
+        metadata: paymentSession.metadata || {},
         status: 'COMPLETED'
       }
     });
@@ -137,7 +137,7 @@ async function handlePaymentFailed(data: any) {
         platformFee: paymentSession.platformFee,
         currency: paymentSession.currency,
         metadata: {
-          ...paymentSession.metadata,
+          ...(paymentSession.metadata && typeof paymentSession.metadata === 'object' && !Array.isArray(paymentSession.metadata) ? paymentSession.metadata : {}),
           error_message
         },
         status: 'FAILED'
