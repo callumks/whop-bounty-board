@@ -30,24 +30,15 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      // Mock profile data for now - would fetch from API in real implementation
-      setProfile({
-        id: '1',
-        username: 'whopuser',
-        email: 'user@example.com',
-        avatarUrl: undefined,
-        isCreator: true,
-        joinedAt: '2024-01-15T00:00:00Z',
-        stats: {
-          challengesCreated: 3,
-          totalSubmissions: 12,
-          approvedSubmissions: 8,
-          totalEarnings: 450.00,
-          totalPaid: 1200.00,
-        },
-      });
+      const response = await fetch('/api/user/profile');
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile');
+      }
+      const data = await response.json();
+      setProfile(data.profile);
     } catch (err) {
       setError('Failed to load profile');
+      console.error('Profile fetch error:', err);
     } finally {
       setLoading(false);
     }

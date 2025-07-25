@@ -30,52 +30,16 @@ export default function DashboardPage() {
 
   const fetchChallenges = async () => {
     try {
-      // This would fetch user's challenges from the API
-      // For now, using mock data
-      const mockChallenges: Challenge[] = [
-        {
-          id: '1',
-          title: 'TikTok Dance Challenge',
-          description: 'Create an original dance to our latest track',
-          rewardType: 'USD',
-          rewardAmount: 500,
-          deadline: '2024-01-31T23:59:59Z',
-          status: 'ACTIVE',
-          isFunded: true,
-          totalSubmissions: 47,
-          approvedSubmissions: 23,
-          createdAt: '2024-01-15T10:00:00Z',
-        },
-        {
-          id: '2',
-          title: 'Product Review Challenge',
-          description: 'Create an honest review of our new wireless headphones',
-          rewardType: 'SUBSCRIPTION',
-          rewardAmount: 0,
-          deadline: '2024-02-15T23:59:59Z',
-          status: 'DRAFT',
-          isFunded: false,
-          totalSubmissions: 0,
-          approvedSubmissions: 0,
-          createdAt: '2024-01-20T14:30:00Z',
-        },
-        {
-          id: '3',
-          title: 'Crypto Art Challenge',
-          description: 'Design original digital artwork featuring our mascot',
-          rewardType: 'USDC',
-          rewardAmount: 200,
-          deadline: '2024-02-28T23:59:59Z',
-          status: 'ACTIVE',
-          isFunded: true,
-          totalSubmissions: 15,
-          approvedSubmissions: 8,
-          createdAt: '2024-01-18T09:15:00Z',
-        },
-      ];
-      setChallenges(mockChallenges);
+      const response = await fetch('/api/user/challenges');
+      if (!response.ok) {
+        throw new Error('Failed to fetch challenges');
+      }
+      const data = await response.json();
+      setChallenges(data.challenges || []);
     } catch (error) {
       console.error('Failed to fetch challenges:', error);
+      // Fallback to empty array on error
+      setChallenges([]);
     } finally {
       setLoading(false);
     }
