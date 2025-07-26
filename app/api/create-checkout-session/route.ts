@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
 
     try {
       // Use Whop's chargeUser API for proper payment processing  
-      const amountInCents = (totalAmount * 100) >> 0; // Convert to cents and round down
+      const amountInCents = Math.round(parseFloat(totalAmount.toFixed(2)) * 100); // Convert to cents properly
+      
+      console.log(`Converting $${totalAmount} to ${amountInCents} cents`); // Debug logging
       const result = await whopSdk.payments.chargeUser({
         amount: amountInCents,
         currency: "usd",

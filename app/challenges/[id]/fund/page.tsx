@@ -61,13 +61,21 @@ export default function FundChallengePage() {
     setError(undefined);
     
     try {
+      const totalAmount = challenge.rewardAmount + challenge.platformFee;
+      console.log('Frontend sending payment:', {
+        rewardAmount: challenge.rewardAmount,
+        platformFee: challenge.platformFee,
+        totalAmount: totalAmount,
+        expectedCents: Math.round(totalAmount * 100)
+      });
+
       // 1. Create the charge on your server
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeId: challenge.id,
-          amount: challenge.rewardAmount + challenge.platformFee, // Send total amount, not just reward
+          amount: totalAmount, // Send total amount, not just reward
           creatorId: (challenge as any).creatorId,
           description: `Fund challenge: ${challenge.title}`
         })
