@@ -55,7 +55,8 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
   // Recalculate fees whenever reward amount or buyout status changes
   useEffect(() => {
     if (watchedRewardAmount && (selectedRewardType === 'USD' || selectedRewardType === 'USDC')) {
-      const calculation = calculatePlatformFee(watchedRewardAmount, buyoutFeePaid);
+      const numericAmount = parseFloat(watchedRewardAmount) || 0;
+      const calculation = calculatePlatformFee(numericAmount, buyoutFeePaid);
       setFeeCalculation(calculation);
     } else {
       setFeeCalculation(null);
