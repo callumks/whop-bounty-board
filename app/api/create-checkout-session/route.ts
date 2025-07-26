@@ -60,12 +60,12 @@ export async function POST(request: NextRequest) {
     const platformFee = challenge.platformFee;
 
     try {
-      // Use Whop's chargeUser API for proper payment processing  
-      const amountInCents = Math.round(parseFloat(totalAmount.toFixed(2)) * 100); // Convert to cents properly
+      // Use Whop's chargeUser API - amount should be in dollars, not cents
+      const amountInDollars = totalAmount; // Send amount as-is in dollars
       
-      console.log(`Converting $${totalAmount} to ${amountInCents} cents`); // Debug logging
+      console.log(`Sending $${amountInDollars} to Whop (in dollars, not cents)`); // Debug logging
       const result = await whopSdk.payments.chargeUser({
-        amount: amountInCents,
+        amount: amountInDollars,
         currency: "usd",
         userId: whopUser.id,
         description: description || `Challenge funding for: ${challenge.title}`,
