@@ -36,20 +36,30 @@ export async function POST(request: NextRequest) {
     const event = JSON.parse(body);
     
     console.log('✅ WEBHOOK VERIFIED - Event details:', {
+      action: event.action,
       type: event.type,
       data: event.data,
       fullEvent: event
     });
 
-    switch (event.type) {
-      case 'payment_success':
+    // Handle both 'action' (actual field) and 'type' (fallback)
+    const eventType = event.action || event.type;
+
+    switch (eventType) {
+      case 'app_payment.succeeded':  // Test webhook format
+      case 'payment_succeeded':      // Real webhook format
+      case 'payment_success':        // Legacy fallback
         await handlePaymentSuccess(event.data);
         break;
-      case 'payment_failed':
+      case 'app_payment.failed':     // Test webhook format  
+      case 'payment_failed':         // Real webhook format
         await handlePaymentFailed(event.data);
         break;
+      case 'payment_pending':        // Real webhook format
+        console.log('Payment pending - no action needed:', event.data);
+        break;
       default:
-        console.log('Unhandled webhook event type:', event.type);
+        console.log('Unhandled webhook event type:', eventType);
     }
 
     return NextResponse.json({ received: true });
