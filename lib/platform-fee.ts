@@ -38,9 +38,9 @@ export function calculatePlatformFee(
   return {
     rewardAmount,
     platformFee,
-    netPayout,
+    netPayout: rewardAmount, // Full reward goes to winner
     buyoutFeePaid: false,
-    totalCost: rewardAmount, // Creator pays reward amount, platform fee comes from that
+    totalCost: rewardAmount + platformFee, // Creator pays reward + platform fee
   };
 }
 
