@@ -3,22 +3,40 @@ import { prisma } from '@/lib/prisma';
 import * as crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
+  console.log('🔔 WEBHOOK RECEIVED - Basic request info:', {
+    method: request.method,
+    url: request.url,
+    headers: Object.fromEntries(request.headers.entries())
+  });
+
   try {
     const body = await request.text();
     const signature = request.headers.get('whop-signature');
     
+    console.log('🔔 WEBHOOK BODY & SIGNATURE:', {
+      bodyLength: body.length,
+      signature: signature,
+      bodyPreview: body.substring(0, 200)
+    });
+    
     // Verify webhook signature
     if (!signature) {
+      console.log('❌ WEBHOOK REJECTED: Missing signature');
       return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
     }
     
     if (!verifyWebhookSignature(body, signature)) {
+      console.log('❌ WEBHOOK REJECTED: Invalid signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
     
     const event = JSON.parse(body);
     
-    console.log('Received Whop webhook:', event.type, event.data);
+    console.log('✅ WEBHOOK VERIFIED - Event details:', {
+      type: event.type,
+      data: event.data,
+      fullEvent: event
+    });
 
     switch (event.type) {
       case 'payment_success':
