@@ -46,6 +46,8 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
   } = useForm<CreateChallengeFormData>({
     defaultValues: {
       buyout_fee_paid: false,
+      reward_amount: undefined, // Will be set when user selects USD/USDC
+      reward_type: 'USD', // Default to USD to trigger fee calculation
     },
   });
 
@@ -54,22 +56,11 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
 
   // Recalculate fees whenever reward amount or buyout status changes
   useEffect(() => {
-    console.log('Fee calculation debug:', {
-      watchedRewardAmount,
-      selectedRewardType,
-      buyoutFeePaid,
-      condition1: !!watchedRewardAmount,
-      condition2: selectedRewardType === 'USD' || selectedRewardType === 'USDC'
-    });
-    
     if (watchedRewardAmount && (selectedRewardType === 'USD' || selectedRewardType === 'USDC')) {
       const numericAmount = typeof watchedRewardAmount === 'number' ? watchedRewardAmount : 0;
-      console.log('Calculating fees for amount:', numericAmount);
       const calculation = calculatePlatformFee(numericAmount, buyoutFeePaid);
-      console.log('Fee calculation result:', calculation);
       setFeeCalculation(calculation);
     } else {
-      console.log('Setting fee calculation to null');
       setFeeCalculation(null);
     }
   }, [watchedRewardAmount, buyoutFeePaid, selectedRewardType]);
@@ -269,10 +260,10 @@ export default function CreateChallengeFormV2({ onSubmit, isLoading }: CreateCha
                       required: 'Reward amount is required',
                       min: { value: 2, message: 'Minimum reward is $2' },
                       validate: validateRewardAmount,
+                      valueAsNumber: true, // Parse input as number automatically
                     })}
                     className="form-input"
                     placeholder="100.00"
-                    onChange={(e) => trigger('reward_amount')}
                   />
                   {errors.reward_amount && (
                     <p className="mt-1 text-sm text-danger">{errors.reward_amount.message}</p>
