@@ -67,7 +67,7 @@ export default function FundChallengePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeId: challenge.id,
-          amount: challenge.rewardAmount,
+          amount: challenge.rewardAmount + challenge.platformFee, // Send total amount, not just reward
           creatorId: (challenge as any).creatorId,
           description: `Fund challenge: ${challenge.title}`
         })

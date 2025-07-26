@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate platform fee (10%)
-    const platformFeeRate = 0.10;
-    const platformFee = amount * platformFeeRate;
-    const totalAmount = amount + platformFee;
+    // Amount already includes platform fee from frontend
+    const totalAmount = amount;
+    const rewardAmount = challenge.rewardAmount;
+    const platformFee = challenge.platformFee;
 
     try {
       // Use Whop's chargeUser API for proper payment processing  
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           challengeId: challengeId,
           challengeTitle: challenge.title,
           creatorId: creatorId,
-          originalAmount: `${amount}`,
+          rewardAmount: `${rewardAmount}`,
           platformFee: `${platformFee}`,
           totalAmount: `${totalAmount}`,
           type: "challenge_funding",
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
           success: true, 
           status: "needs_action",
           inAppPurchase: result.inAppPurchase,
-          amount: amount,
+          rewardAmount: rewardAmount,
           platformFee: platformFee,
           totalAmount: totalAmount
         });
