@@ -184,7 +184,7 @@ async function handlePaymentFailed(data: any) {
   }
 }
 
-// Verify webhook signature from Whop
+// Verify webhook signature from Whop (Stripe-style format)
 function verifyWebhookSignature(payload: string, signature: string): boolean {
   try {
     const webhookSecret = process.env.WHOP_WEBHOOK_SECRET;
@@ -194,18 +194,28 @@ function verifyWebhookSignature(payload: string, signature: string): boolean {
       return false;
     }
 
-    // Remove any prefix like 'sha256=' if present
-    const cleanSignature = signature.replace(/^sha256=/, '');
+    // Parse the signature header format: t=timestamp,v1=signature
+    const elements = signature.split(',');
+    const timestamp = elements.find(el => el.startsWith('t='))?.split('=')[1];
+    const signatureHash = elements.find(el => el.startsWith('v1='))?.split('=')[1];
     
-    // Create expected signature
+    if (!timestamp || !signatureHash) {
+      console.error('Invalid signature format - missing timestamp or signature hash');
+      return false;
+    }
+    
+    // Create the signed payload string (timestamp + payload)
+    const signedPayload = `${timestamp}.${payload}`;
+    
+    // Generate expected signature
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
-      .update(payload, 'utf8')
+      .update(signedPayload, 'utf8')
       .digest('hex');
     
     // Compare signatures safely
     return crypto.timingSafeEqual(
-      Buffer.from(cleanSignature, 'hex'),
+      Buffer.from(signatureHash, 'hex'),
       Buffer.from(expectedSignature, 'hex')
     );
   } catch (error) {
