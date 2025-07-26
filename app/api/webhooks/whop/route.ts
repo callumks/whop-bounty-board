@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.text();
-    const signature = request.headers.get('whop-signature');
+    const signature = request.headers.get('x-whop-signature');
     
     console.log('🔔 WEBHOOK BODY & SIGNATURE:', {
       bodyLength: body.length,
