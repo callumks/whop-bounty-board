@@ -19,19 +19,16 @@ export async function POST(request: NextRequest) {
       bodyPreview: body.substring(0, 200)
     });
     
-    // Temporarily disable signature verification for testing
-    // TODO: Re-enable this for production
-    console.log('⚠️ SIGNATURE VERIFICATION TEMPORARILY DISABLED FOR TESTING');
+    // Verify webhook signature for security
+    if (!signature) {
+      console.log('❌ WEBHOOK REJECTED: Missing signature');
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    }
     
-    // if (!signature) {
-    //   console.log('❌ WEBHOOK REJECTED: Missing signature');
-    //   return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
-    // }
-    
-    // if (!verifyWebhookSignature(body, signature)) {
-    //   console.log('❌ WEBHOOK REJECTED: Invalid signature');
-    //   return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    // }
+    if (!verifyWebhookSignature(body, signature)) {
+      console.log('❌ WEBHOOK REJECTED: Invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
     
     const event = JSON.parse(body);
     
