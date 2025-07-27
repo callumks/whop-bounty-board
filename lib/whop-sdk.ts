@@ -8,6 +8,10 @@ export interface WhopUser {
   username: string;
   avatar_url?: string;
   discord_id?: string;
+  profilePicture?: {
+    __typename: string;
+    sourceUrl: string;
+  };
 }
 
 // Create Whop SDK instance - CORRECT package with users service

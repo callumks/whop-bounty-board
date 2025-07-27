@@ -35,7 +35,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
           whopUserId: whopUser.id,
           email: whopUser.email,
           username: whopUser.username,
-          avatarUrl: whopUser.avatar_url,
+          avatarUrl: whopUser.profilePicture?.sourceUrl || null,
           isCreator: isCreator,
         }
       });
@@ -46,7 +46,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
         data: {
           email: whopUser.email,
           username: whopUser.username,
-          avatarUrl: whopUser.avatar_url,
+          avatarUrl: whopUser.profilePicture?.sourceUrl || null,
           isCreator: isCreator,
         }
       });

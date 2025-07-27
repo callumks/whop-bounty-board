@@ -3,7 +3,7 @@ export interface User {
   whop_user_id: string;
   email: string;
   username: string;
-  avatar_url?: string;
+  avatarUrl?: string;
   is_creator: boolean;
   wallet_address?: string;
   stripe_customer_id?: string;
