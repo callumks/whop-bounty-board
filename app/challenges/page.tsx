@@ -260,11 +260,19 @@ export default function ChallengesPage(props: {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-whop-purple rounded-full flex items-center justify-center">
-                      <span className="text-white font-semibold">
-                        {challenge.creator.username[0]}
-                      </span>
-                    </div>
+                    {challenge.creator.avatarUrl ? (
+                      <img
+                        src={challenge.creator.avatarUrl}
+                        alt={challenge.creator.username}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-whop-purple rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold">
+                          {challenge.creator.username[0]}
+                        </span>
+                      </div>
+                    )}
                     <div>
                       <div className="font-semibold text-gray-900">
                         {challenge.creator.username}
