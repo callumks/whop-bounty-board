@@ -12,8 +12,8 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
-  rewardAmount: number;
+  reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
+  reward_amount: number;
   deadline: string;
   status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   isFunded: boolean;
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                   {formatCurrency(
                     challenges
                       .filter(c => c.status === 'ACTIVE' || c.status === 'COMPLETED')
-                      .reduce((sum, c) => sum + (c.rewardAmount * c.approvedSubmissions), 0)
+                      .reduce((sum, c) => sum + (c.reward_amount * c.approvedSubmissions), 0)
                   )}
                 </p>
               </div>
@@ -249,11 +249,11 @@ export default function DashboardPage() {
                             {getStatusText(challenge)}
                           </span>
                           <span className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
-                            challenge.rewardType === 'USD' ? 'bg-green-100 text-green-800' :
-                            challenge.rewardType === 'USDC' ? 'bg-blue-100 text-blue-800' :
+                            challenge.reward_type === 'USD' ? 'bg-green-100 text-green-800' :
+                            challenge.reward_type === 'USDC' ? 'bg-blue-100 text-blue-800' :
                             'bg-purple-100 text-purple-800'
                           }`}>
-                            {challenge.rewardType === 'SUBSCRIPTION' ? 'PASS' : challenge.rewardType}
+                            {challenge.reward_type === 'SUBSCRIPTION' ? 'PASS' : challenge.reward_type}
                           </span>
                         </div>
                         
@@ -268,9 +268,9 @@ export default function DashboardPage() {
                           <div>
                             <span className="text-gray-500">Reward:</span>
                             <span className="ml-1 font-medium">
-                              {challenge.rewardType === 'SUBSCRIPTION' 
+                              {challenge.reward_type === 'SUBSCRIPTION' 
                                 ? 'Subscription Access' 
-                                : formatCurrency(challenge.rewardAmount)
+                                : formatCurrency(challenge.reward_amount)
                               }
                             </span>
                           </div>

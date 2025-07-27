@@ -9,7 +9,7 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  rewardAmount: number;
+  reward_amount: number;
   platformFee: number;
   netPayout: number;
   deadline: string;
@@ -61,9 +61,9 @@ export default function FundChallengePage() {
     setError(undefined);
     
     try {
-      const totalAmount = challenge.rewardAmount + challenge.platformFee;
+      const totalAmount = challenge.reward_amount + challenge.platformFee;
       console.log('Frontend sending payment:', {
-        rewardAmount: challenge.rewardAmount,
+        rewardAmount: challenge.reward_amount,
         platformFee: challenge.platformFee,
         totalAmount: totalAmount,
         expectedCents: Math.round(totalAmount * 100)
@@ -173,7 +173,7 @@ export default function FundChallengePage() {
     );
   }
 
-  const totalCost = challenge.rewardAmount + challenge.platformFee;
+  const totalCost = challenge.reward_amount + challenge.platformFee;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -231,7 +231,7 @@ export default function FundChallengePage() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span>Reward Amount</span>
-              <span className="font-semibold">${challenge.rewardAmount.toFixed(2)}</span>
+              <span className="font-semibold">${challenge.reward_amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Platform Fee (10%)</span>

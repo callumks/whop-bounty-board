@@ -20,13 +20,13 @@ interface SubmissionWithChallenge {
     id: string;
     title: string;
     description: string;
-    rewardAmount?: number;
-    rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
+    reward_amount?: number;
+    reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
     deadline: string;
     creator: {
       id: string;
       username: string;
-      avatarUrl?: string;
+      avatar_url?: string;
     };
   };
   payments: Array<{
@@ -209,9 +209,9 @@ export default function SubmissionsPage() {
                     {/* Creator Info */}
                     <div className="flex items-center space-x-2 mb-4">
                       <span className="text-sm text-gray-500">by</span>
-                      {submission.challenge.creator.avatarUrl ? (
+                      {submission.challenge.creator.avatar_url ? (
                         <img
-                          src={submission.challenge.creator.avatarUrl}
+                          src={submission.challenge.creator.avatar_url}
                           alt={submission.challenge.creator.username}
                           className="w-6 h-6 rounded-full"
                         />
@@ -244,10 +244,10 @@ export default function SubmissionsPage() {
                       <div>
                         <span className="text-xs text-gray-500 uppercase tracking-wide">Reward</span>
                         <p className="text-sm font-medium text-gray-900">
-                          {submission.challenge.rewardAmount 
-                            ? formatCurrency(submission.challenge.rewardAmount)
+                                                      {submission.challenge.reward_amount
+                              ? formatCurrency(submission.challenge.reward_amount)
                             : 'Subscription Pass'
-                          } ({submission.challenge.rewardType})
+                          } ({submission.challenge.reward_type})
                         </p>
                       </div>
                     </div>

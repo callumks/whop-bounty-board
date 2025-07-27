@@ -3,7 +3,7 @@ export interface User {
   whop_user_id: string;
   email: string;
   username: string;
-  avatarUrl?: string;
+  avatar_url?: string;
   is_creator: boolean;
   wallet_address?: string;
   stripe_customer_id?: string;
@@ -19,11 +19,14 @@ export interface Challenge {
   required_tags: string[];
   reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
   reward_amount?: number;
+  platform_fee?: number;
+  net_payout?: number;
+  buyout_fee_paid?: boolean;
   reward_subscription_id?: string;
   deadline: string;
   visibility: 'PUBLIC' | 'PRIVATE';
-  whop_company_id?: string; // For private challenges
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  whop_company_id?: string;
+  status: 'DRAFT' | 'FUNDED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   is_funded: boolean;
   total_submissions: number;
   approved_submissions: number;

@@ -13,8 +13,8 @@ interface Challenge {
   title: string;
   description: string;
   requiredTags: string[];
-  rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
-  rewardAmount: number;
+      reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
+  reward_amount: number;
   deadline: string;
   visibility: 'PUBLIC' | 'PRIVATE';
   status: string;
@@ -24,7 +24,7 @@ interface Challenge {
   creator: {
     id: string;
     username: string;
-    avatarUrl?: string;
+    avatar_url?: string;
   };
 }
 
@@ -230,11 +230,11 @@ export default function ChallengesPage(props: {
                     </div>
                   </div>
                   <div className={`status-badge ${
-                    challenge.rewardType === 'USD' ? 'text-success bg-success/10' :
-                    challenge.rewardType === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
+                    challenge.reward_type === 'USD' ? 'text-success bg-success/10' :
+                    challenge.reward_type === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
                     'text-whop-purple bg-whop-purple/10'
                   }`}>
-                    {challenge.rewardType === 'SUBSCRIPTION' ? 'PASS' : challenge.rewardType}
+                    {challenge.reward_type === 'SUBSCRIPTION' ? 'PASS' : challenge.reward_type}
                   </div>
                 </div>
 
@@ -261,8 +261,8 @@ export default function ChallengesPage(props: {
                       <DollarSign className="w-4 h-4 text-gray-400 mr-1" />
                     </div>
                     <div className="font-semibold text-gray-900">
-                      {challenge.rewardAmount 
-                        ? formatCurrency(challenge.rewardAmount)
+                                              {challenge.reward_amount
+                          ? formatCurrency(challenge.reward_amount)
                         : 'Subscription'
                       }
                     </div>
