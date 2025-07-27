@@ -14,7 +14,7 @@ async function getFeaturedChallenges() {
       reward_type: 'USD',
       reward_amount: 500,
       deadline: '2024-01-31T23:59:59Z',
-      creator: { username: 'MusicLabel', avatar_url: null },
+      creator: { username: 'MusicLabel', avatarUrl: null },
       total_submissions: 47,
     },
     {
@@ -24,7 +24,7 @@ async function getFeaturedChallenges() {
       reward_type: 'SUBSCRIPTION',
       reward_amount: null,
       deadline: '2024-02-15T23:59:59Z',
-      creator: { username: 'TechBrand', avatar_url: null },
+      creator: { username: 'TechBrand', avatarUrl: null },
       total_submissions: 23,
     },
     {
@@ -34,7 +34,7 @@ async function getFeaturedChallenges() {
       reward_type: 'USDC',
       reward_amount: 200,
       deadline: '2024-02-28T23:59:59Z',
-      creator: { username: 'CryptoStudio', avatar_url: null },
+      creator: { username: 'CryptoStudio', avatarUrl: null },
       total_submissions: 15,
     },
   ];

@@ -25,9 +25,9 @@ export default function ChallengeCard({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-whop-purple rounded-full flex items-center justify-center">
-                      {challenge.creator.avatar_url ? (
+                      {challenge.creator.avatarUrl ? (
             <img
-              src={challenge.creator.avatar_url}
+              src={challenge.creator.avatarUrl}
                 alt={challenge.creator.username}
                 className="w-12 h-12 rounded-full object-cover"
               />

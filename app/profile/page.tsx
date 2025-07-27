@@ -10,7 +10,7 @@ interface UserProfile {
   id: string;
   username: string;
   email: string;
-  avatar_url?: string;
+  avatarUrl?: string;
   isCreator: boolean;
   joinedAt: string;
   stats: {
@@ -109,9 +109,9 @@ export default function ProfilePage() {
         {/* Profile Info */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center space-x-4">
-                          {profile.avatar_url ? (
+                          {profile.avatarUrl ? (
                 <img
-                  src={profile.avatar_url}
+                  src={profile.avatarUrl}
                 alt={profile.username}
                 className="w-16 h-16 rounded-full"
               />

@@ -26,7 +26,7 @@ interface SubmissionWithChallenge {
     creator: {
       id: string;
       username: string;
-      avatar_url?: string;
+      avatarUrl?: string;
     };
   };
   payments: Array<{
@@ -209,9 +209,9 @@ export default function SubmissionsPage() {
                     {/* Creator Info */}
                     <div className="flex items-center space-x-2 mb-4">
                       <span className="text-sm text-gray-500">by</span>
-                      {submission.challenge.creator.avatar_url ? (
+                      {submission.challenge.creator.avatarUrl ? (
                         <img
-                          src={submission.challenge.creator.avatar_url}
+                          src={submission.challenge.creator.avatarUrl}
                           alt={submission.challenge.creator.username}
                           className="w-6 h-6 rounded-full"
                         />

@@ -9,7 +9,7 @@ interface NavbarProps {
   user?: {
     id: string;
     username: string;
-    avatar_url?: string;
+    avatarUrl?: string;
     is_creator: boolean;
   } | null;
 }
@@ -18,7 +18,7 @@ interface UserInfo {
   id: string;
   username: string;
   email: string;
-  avatar_url?: string;
+  avatarUrl?: string;
   is_whop_owner: boolean; // This indicates if user owns the Whop company where app is installed
 }
 
@@ -41,7 +41,7 @@ export default function Navbar({ user }: NavbarProps) {
           id: data.user.id,
           username: data.user.username,
           email: data.user.email,
-          avatar_url: data.user.avatar_url,
+          avatarUrl: data.user.avatarUrl,
           is_whop_owner: data.user.is_whop_owner,
         });
       }
@@ -119,10 +119,10 @@ export default function Navbar({ user }: NavbarProps) {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
                 <span className="sr-only">Open user menu</span>
-                {userInfo?.avatar_url ? (
+                {userInfo?.avatarUrl ? (
                   <img
                     className="h-8 w-8 rounded-full"
-                    src={userInfo.avatar_url}
+                    src={userInfo.avatarUrl}
                     alt={userInfo.username}
                   />
                 ) : (
@@ -202,10 +202,10 @@ export default function Navbar({ user }: NavbarProps) {
           
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex items-center px-4">
-              {userInfo?.avatar_url ? (
+              {userInfo?.avatarUrl ? (
                 <img
                   className="h-10 w-10 rounded-full"
-                  src={userInfo.avatar_url}
+                  src={userInfo.avatarUrl}
                   alt={userInfo.username}
                 />
               ) : (

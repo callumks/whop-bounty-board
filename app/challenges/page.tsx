@@ -24,7 +24,7 @@ interface Challenge {
   creator: {
     id: string;
     username: string;
-    avatar_url?: string;
+    avatarUrl?: string;
   };
 }
 
