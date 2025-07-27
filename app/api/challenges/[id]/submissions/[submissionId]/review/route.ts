@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthenticatedUser } from '@/lib/auth-middleware';
+import { processApprovedSubmission } from '@/lib/whop-payouts';
 
 export async function PATCH(
   request: NextRequest,
@@ -100,10 +101,25 @@ export async function PATCH(
       ] : []),
     ]);
 
+    // If submission was approved, trigger automatic payout
+    let payoutResult = null;
+    if (action === 'approve') {
+      try {
+        payoutResult = await processApprovedSubmission(submissionId);
+        if (!payoutResult.success) {
+          console.error('Payout failed but submission approved:', payoutResult.error);
+        }
+      } catch (error) {
+        console.error('Payout processing error:', error);
+        // Don't fail the approval if payout fails - can be retried manually
+      }
+    }
+
     return NextResponse.json({
       success: true,
       submission: updatedSubmission,
       message: `Submission ${action}d successfully`,
+      payout: payoutResult,
     });
   } catch (error) {
     console.error('Failed to review submission:', error);
