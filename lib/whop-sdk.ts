@@ -9,7 +9,7 @@ export interface WhopUser {
   avatar_url?: string;
   discord_id?: string;
   profilePicture?: {
-    __typename: string;
+    __typename?: string;
     sourceUrl: string;
   };
 }
@@ -63,6 +63,7 @@ export async function getUserFromHeaders(headers: Headers): Promise<WhopUser | n
       id: userData.id || userId,
       email: userData.email || `${userData.username || 'user'}@whop.app`,
       username: userData.username || userData.name || 'WhopUser',
+      profilePicture: userData.profilePicture || undefined,
       avatar_url: userData.profilePicture?.sourceUrl || undefined,
       discord_id: undefined, // Available in user data if needed
     };
