@@ -13,8 +13,8 @@ interface Challenge {
   title: string;
   description: string;
   requiredTags: string[];
-      reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
-  reward_amount: number;
+  rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
+  rewardAmount: number;
   deadline: string;
   visibility: 'PUBLIC' | 'PRIVATE';
   status: string;
@@ -25,6 +25,9 @@ interface Challenge {
     id: string;
     username: string;
     avatarUrl?: string;
+  };
+  _count?: {
+    submissions: number;
   };
 }
 
@@ -230,11 +233,11 @@ export default function ChallengesPage(props: {
                     </div>
                   </div>
                   <div className={`status-badge ${
-                    challenge.reward_type === 'USD' ? 'text-success bg-success/10' :
-                    challenge.reward_type === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
+                    challenge.rewardType === 'USD' ? 'text-success bg-success/10' :
+                    challenge.rewardType === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
                     'text-whop-purple bg-whop-purple/10'
                   }`}>
-                    {challenge.reward_type === 'SUBSCRIPTION' ? 'PASS' : challenge.reward_type}
+                    {challenge.rewardType === 'SUBSCRIPTION' ? 'PASS' : challenge.rewardType}
                   </div>
                 </div>
 
@@ -261,8 +264,8 @@ export default function ChallengesPage(props: {
                       <DollarSign className="w-4 h-4 text-gray-400 mr-1" />
                     </div>
                     <div className="font-semibold text-gray-900">
-                                              {challenge.reward_amount
-                          ? formatCurrency(challenge.reward_amount)
+                      {challenge.rewardAmount
+                        ? formatCurrency(challenge.rewardAmount)
                         : 'Subscription'
                       }
                     </div>
@@ -273,7 +276,7 @@ export default function ChallengesPage(props: {
                       <Users className="w-4 h-4 text-gray-400 mr-1" />
                     </div>
                     <div className="font-semibold text-gray-900">
-                      {challenge.totalSubmissions}
+                      {challenge._count?.submissions || challenge.totalSubmissions || 0}
                     </div>
                     <div className="text-xs text-gray-500">Submissions</div>
                   </div>
