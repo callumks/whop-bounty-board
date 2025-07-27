@@ -44,12 +44,14 @@ export async function POST(request: NextRequest) {
 
     switch (eventType) {
       case 'app_payment.succeeded':  // Test webhook format
-      case 'payment_succeeded':      // Real webhook format
+      case 'payment.succeeded':      // Real webhook format (with dot)
+      case 'payment_succeeded':      // Real webhook format (with underscore)
       case 'payment_success':        // Legacy fallback
         await handlePaymentSuccess(event.data);
         break;
       case 'app_payment.failed':     // Test webhook format  
-      case 'payment_failed':         // Real webhook format
+      case 'payment.failed':         // Real webhook format (with dot)
+      case 'payment_failed':         // Real webhook format (with underscore)
         await handlePaymentFailed(event.data);
         break;
       case 'payment_pending':        // Real webhook format
