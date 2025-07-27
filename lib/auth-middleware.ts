@@ -41,6 +41,11 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
       });
     } else {
       // Update existing user with latest info
+      console.log('=== DEBUG: Updating existing user ===');
+      console.log('whopUser.profilePicture:', whopUser.profilePicture);
+      console.log('whopUser.profilePicture?.sourceUrl:', whopUser.profilePicture?.sourceUrl);
+      console.log('avatarUrl to save:', whopUser.profilePicture?.sourceUrl || null);
+      
       dbUser = await prisma.user.update({
         where: { id: dbUser.id },
         data: {
@@ -50,6 +55,8 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
           isCreator: isCreator,
         }
       });
+      
+      console.log('=== DEBUG: User updated, new avatarUrl:', dbUser.avatarUrl);
     }
 
     return {

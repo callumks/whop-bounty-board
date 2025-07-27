@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
 
     // In the response, is_creator indicates if user is a Whop company owner
     // (where this app is installed), not just any creator
+    console.log('=== DEBUG: /api/user/status response ===');
+    console.log('User avatarUrl from DB:', user.avatarUrl);
+    console.log('Full user object:', user);
+
     return NextResponse.json({
       user: {
         id: user.id,
