@@ -40,7 +40,7 @@ export async function payoutUSD(
 
     return {
       success: true,
-      transactionId: payment?.id || 'unknown',
+      transactionId: `payout-${submissionId}-${Date.now()}`,
     };
   } catch (error) {
     console.error('USD payout failed:', error);
@@ -83,7 +83,7 @@ export async function payoutCrypto(
 
     return {
       success: true,
-      transactionId: payment.id || 'unknown',
+      transactionId: `crypto-payout-${submissionId}-${Date.now()}`,
     };
   } catch (error) {
     console.error('Crypto payout failed:', error);
@@ -119,7 +119,7 @@ export async function grantSubscriptionAccess(
 
     return {
       success: true,
-      transactionId: checkoutSession.id || 'unknown',
+      transactionId: `subscription-${submissionId}-${Date.now()}`,
     };
   } catch (error) {
     console.error('Subscription grant failed:', error);
