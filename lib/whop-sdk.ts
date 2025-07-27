@@ -10,7 +10,7 @@ export interface WhopUser {
   discord_id?: string;
   profilePicture?: {
     __typename?: string;
-    sourceUrl: string;
+    sourceUrl?: string | null;
   };
 }
 
