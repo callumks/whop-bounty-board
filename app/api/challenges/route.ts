@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user is a creator
-    if (!user.is_creator) {
+    if (!user.isCreator) {
       return NextResponse.json(
         { error: 'Only creators can create challenges' },
         { status: 403 }

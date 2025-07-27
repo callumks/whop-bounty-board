@@ -4,11 +4,11 @@ import { prisma } from './prisma';
 
 export interface AuthenticatedUser {
   id: string; // Internal database ID
-  whop_user_id: string;
+  whopUserId: string;
   email: string;
   username: string;
-  avatar_url?: string;
-  is_creator: boolean;
+  avatarUrl?: string;
+  isCreator: boolean;
 }
 
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
@@ -54,11 +54,11 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
 
     return {
       id: dbUser.id,
-      whop_user_id: dbUser.whopUserId,
+      whopUserId: dbUser.whopUserId,
       email: dbUser.email,
       username: dbUser.username,
-      avatar_url: dbUser.avatarUrl || undefined,
-      is_creator: dbUser.isCreator,
+      avatarUrl: dbUser.avatarUrl || undefined,
+      isCreator: dbUser.isCreator,
     };
   } catch (error) {
     console.error('Authentication error:', error);
@@ -98,7 +98,7 @@ export function requireCreator(handler: (request: NextRequest, user: Authenticat
       );
     }
 
-    if (!user.is_creator) {
+    if (!user.isCreator) {
       return new Response(
         JSON.stringify({ error: 'Creator access required' }),
         {

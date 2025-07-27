@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       user: {
         id: user.id,
-        whop_user_id: user.whop_user_id,
+        whopUserId: user.whopUserId,
         username: user.username,
         email: user.email,
-        avatar_url: user.avatar_url,
-        is_whop_owner: user.is_creator, // This is now checking company ownership
+        avatarUrl: user.avatarUrl,
+        is_whop_owner: user.isCreator, // This is now checking company ownership
       }
     });
 
