@@ -151,11 +151,11 @@ export default function ChallengePage() {
           </div>
           
           <div className={`status-badge text-lg px-4 py-2 ${
-            challenge.reward_type === 'USD' ? 'text-success bg-success/10' :
-            challenge.reward_type === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
+            challenge.rewardType === 'USD' ? 'text-success bg-success/10' :
+            challenge.rewardType === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
             'text-whop-purple bg-whop-purple/10'
           }`}>
-            {challenge.reward_type === 'SUBSCRIPTION' ? 'SUBSCRIPTION PASS' : challenge.reward_type}
+            {challenge.rewardType === 'SUBSCRIPTION' ? 'SUBSCRIPTION PASS' : challenge.rewardType}
           </div>
         </div>
 
@@ -164,8 +164,8 @@ export default function ChallengePage() {
           <div className="card text-center">
             <DollarSign className="w-8 h-8 text-success mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
-              {challenge.reward_amount 
-                ? formatCurrency(challenge.reward_amount)
+              {challenge.rewardAmount 
+                ? formatCurrency(challenge.rewardAmount)
                 : 'Subscription'
               }
             </div>
@@ -174,13 +174,13 @@ export default function ChallengePage() {
           
           <div className="card text-center">
             <Users className="w-8 h-8 text-whop-blue mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{challenge.total_submissions}</div>
+            <div className="text-2xl font-bold text-gray-900">{challenge.totalSubmissions}</div>
             <div className="text-sm text-gray-500">Total Submissions</div>
           </div>
           
           <div className="card text-center">
             <Users className="w-8 h-8 text-whop-purple mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{challenge.approved_submissions}</div>
+            <div className="text-2xl font-bold text-gray-900">{challenge.approvedSubmissions}</div>
             <div className="text-sm text-gray-500">Approved Submissions</div>
           </div>
           
@@ -208,14 +208,14 @@ export default function ChallengePage() {
           </div>
 
           {/* Required Tags */}
-          {challenge.required_tags && challenge.required_tags.length > 0 && (
+          {challenge.requiredTags && challenge.requiredTags.length > 0 && (
             <div className="card mb-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center">
                 <Tag className="w-5 h-5 mr-2" />
                 Required Tags
               </h2>
               <div className="flex flex-wrap gap-2">
-                {challenge.required_tags.map((tag, index) => (
+                {challenge.requiredTags.map((tag, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-whop-purple/10 text-whop-purple"
@@ -287,7 +287,7 @@ export default function ChallengePage() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Created:</span>
                 <span className="font-medium">
-                  {new Date(challenge.created_at).toLocaleDateString()}
+                  {new Date(challenge.createdAt).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -302,11 +302,11 @@ export default function ChallengePage() {
                   {challenge.status}
                 </span>
               </div>
-              {challenge.reward_amount && (
+              {challenge.rewardAmount && (
                 <div className="flex justify-between">
                   <span className="text-gray-500">Platform Fee:</span>
                   <span className="font-medium">
-                    {formatCurrency(challenge.platform_fee || 0)}
+                    {formatCurrency(challenge.platformFee || 0)}
                   </span>
                 </div>
               )}

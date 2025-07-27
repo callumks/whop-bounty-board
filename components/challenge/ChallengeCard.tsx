@@ -59,11 +59,11 @@ export default function ChallengeCard({
         
         <div className="flex flex-col items-end space-y-2">
           <div className={`status-badge ${
-            challenge.reward_type === 'USD' ? 'text-success bg-success/10' :
-            challenge.reward_type === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
+            challenge.rewardType === 'USD' ? 'text-success bg-success/10' :
+            challenge.rewardType === 'USDC' ? 'text-whop-blue bg-whop-blue/10' :
             'text-whop-purple bg-whop-purple/10'
           }`}>
-            {challenge.reward_type === 'SUBSCRIPTION' ? 'PASS' : challenge.reward_type}
+            {challenge.rewardType === 'SUBSCRIPTION' ? 'PASS' : challenge.rewardType}
           </div>
           
           {showStatus && (
@@ -84,9 +84,9 @@ export default function ChallengeCard({
       </p>
 
       {/* Tags */}
-      {challenge.required_tags && challenge.required_tags.length > 0 && (
+      {challenge.requiredTags && challenge.requiredTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
-          {challenge.required_tags.slice(0, 3).map((tag, index) => (
+          {challenge.requiredTags.slice(0, 3).map((tag, index) => (
             <span
               key={index}
               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
@@ -94,9 +94,9 @@ export default function ChallengeCard({
               {tag}
             </span>
           ))}
-          {challenge.required_tags.length > 3 && (
+          {challenge.requiredTags.length > 3 && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              +{challenge.required_tags.length - 3} more
+              +{challenge.requiredTags.length - 3} more
             </span>
           )}
         </div>
@@ -109,8 +109,8 @@ export default function ChallengeCard({
             <DollarSign className="w-4 h-4 text-gray-400 mr-1" />
           </div>
           <div className="font-semibold text-gray-900">
-            {challenge.reward_amount 
-              ? formatCurrency(challenge.reward_amount)
+            {challenge.rewardAmount 
+              ? formatCurrency(challenge.rewardAmount)
               : 'Subscription'
             }
           </div>
@@ -122,7 +122,7 @@ export default function ChallengeCard({
             <Users className="w-4 h-4 text-gray-400 mr-1" />
           </div>
           <div className="font-semibold text-gray-900">
-            {challenge.total_submissions}
+            {challenge.totalSubmissions}
           </div>
           <div className="text-xs text-gray-500">Submissions</div>
         </div>
@@ -139,17 +139,17 @@ export default function ChallengeCard({
       </div>
 
       {/* Progress Bar */}
-      {challenge.total_submissions > 0 && (
+      {challenge.totalSubmissions > 0 && (
         <div className="mb-4">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
             <span>Submissions</span>
-            <span>{challenge.approved_submissions} approved</span>
+            <span>{challenge.approvedSubmissions} approved</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-whop-purple h-2 rounded-full transition-all duration-300"
               style={{ 
-                width: `${Math.min((challenge.approved_submissions / challenge.total_submissions) * 100, 100)}%` 
+                width: `${Math.min((challenge.approvedSubmissions / challenge.totalSubmissions) * 100, 100)}%` 
               }}
             />
           </div>

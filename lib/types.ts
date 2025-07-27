@@ -1,66 +1,66 @@
 export interface User {
   id: string;
-  whop_user_id: string;
+  whopUserId: string;
   email: string;
   username: string;
   avatarUrl?: string;
-  is_creator: boolean;
-  wallet_address?: string;
-  stripe_customer_id?: string;
-  created_at: string;
-  updated_at: string;
+  isCreator: boolean;
+  walletAddress?: string;
+  stripeCustomerId?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Challenge {
   id: string;
-  creator_id: string;
+  creatorId: string;
   title: string;
   description: string;
-  required_tags: string[];
-  reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
-  reward_amount?: number;
-  platform_fee?: number;
-  net_payout?: number;
-  buyout_fee_paid?: boolean;
-  reward_subscription_id?: string;
+  requiredTags: string[];
+  rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
+  rewardAmount?: number;
+  platformFee?: number;
+  netPayout?: number;
+  buyoutFeePaid?: boolean;
+  rewardSubscriptionId?: string;
   deadline: string;
   visibility: 'PUBLIC' | 'PRIVATE';
-  whop_company_id?: string;
+  whopCompanyId?: string;
   status: 'DRAFT' | 'FUNDED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  is_funded: boolean;
-  total_submissions: number;
-  approved_submissions: number;
-  created_at: string;
-  updated_at: string;
+  isFunded: boolean;
+  totalSubmissions: number;
+  approvedSubmissions: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Submission {
   id: string;
-  challenge_id: string;
-  user_id: string;
-  content_url: string;
-  content_type: 'TIKTOK' | 'TWITTER' | 'INSTAGRAM' | 'YOUTUBE' | 'OTHER';
+  challengeId: string;
+  userId: string;
+  contentUrl: string;
+  contentType: 'TIKTOK' | 'TWITTER' | 'INSTAGRAM' | 'YOUTUBE' | 'OTHER';
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
-  rejection_reason?: string;
-  submitted_at: string;
-  reviewed_at?: string;
-  paid_at?: string;
+  rejectionReason?: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  paidAt?: string;
 }
 
 export interface Payment {
   id: string;
-  challenge_id: string;
-  user_id: string;
-  submission_id?: string;
+  challengeId: string;
+  userId: string;
+  submissionId?: string;
   type: 'FUNDING' | 'PAYOUT';
   method: 'STRIPE' | 'CRYPTO' | 'SUBSCRIPTION';
   amount?: number;
   currency?: string;
-  stripe_payment_intent_id?: string;
-  crypto_transaction_hash?: string;
+  stripePaymentIntentId?: string;
+  cryptoTransactionHash?: string;
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ChallengeWithCreator extends Challenge {
@@ -83,33 +83,33 @@ export interface SubmissionWithUser extends Submission {
   challenge: {
     id: string;
     title: string;
-    reward_type: 'USD' | 'USDC' | 'SUBSCRIPTION';
-    reward_amount?: number;
+    rewardType: 'USD' | 'USDC' | 'SUBSCRIPTION';
+    rewardAmount?: number;
   };
 }
 
 export interface CreateChallengeData {
   title: string;
   description: string;
-  required_tags: string[];
-  reward_type: Challenge['reward_type'];
-  reward_amount?: number;
-  reward_subscription_id?: string;
+  requiredTags: string[];
+  rewardType: Challenge['rewardType'];
+  rewardAmount?: number;
+  rewardSubscriptionId?: string;
   deadline: string;
   visibility: Challenge['visibility'];
-  whop_company_id?: string;
+  whopCompanyId?: string;
 }
 
 export interface FundingData {
-  challenge_id: string;
-  payment_method: 'stripe' | 'crypto';
+  challengeId: string;
+  paymentMethod: 'stripe' | 'crypto';
   amount?: number;
-  stripe_payment_method_id?: string;
-  wallet_signature?: string;
+  stripePaymentMethodId?: string;
+  walletSignature?: string;
 }
 
 export interface ModerationAction {
-  submission_id: string;
+  submissionId: string;
   action: 'approve' | 'reject';
-  rejection_reason?: string;
+  rejectionReason?: string;
 } 
