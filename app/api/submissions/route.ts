@@ -104,28 +104,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new submission
-    const submission = await prisma.submission.create({
-      data: {
-        challengeId: String(challengeId),
-        userId: user.id,
-        contentUrl: String(contentUrl),
-        contentType: String(contentType),
-      },
-      include: {
-        challenge: {
-          include: {
-            creator: {
-              select: {
-                id: true,
-                username: true,
-                avatarUrl: true,
+    // Create new submission and update challenge submission count
+    const [submission] = await prisma.$transaction([
+      prisma.submission.create({
+        data: {
+          challengeId,
+          userId: user.id,
+          contentUrl,
+          contentType,
+        },
+        include: {
+          challenge: {
+            include: {
+              creator: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      // Update the challenge's total submission count
+      prisma.challenge.update({
+        where: { id: challengeId },
+        data: {
+          totalSubmissions: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
 
     return NextResponse.json({ submission }, { status: 201 });
 

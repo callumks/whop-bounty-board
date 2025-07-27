@@ -54,6 +54,48 @@ export default function ChallengesPage(props: {
     fetchUserStatus();
   }, [searchQuery, rewardTypeFilter, sortBy]);
 
+  // Auto-refresh challenges every 30 seconds to show updated submission counts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchChallenges();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [searchQuery, rewardTypeFilter, sortBy]);
+
+  // Refresh when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchChallenges();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Auto-refresh challenges every 30 seconds to show updated submission counts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchChallenges();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [searchQuery, rewardTypeFilter, sortBy]);
+
+  // Refresh when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchChallenges();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const fetchUserStatus = async () => {
     try {
       const response = await fetch('/api/user/status');
