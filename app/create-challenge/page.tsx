@@ -56,7 +56,7 @@ export default function CreateChallengePage() {
         body: JSON.stringify({
           title: data.title,
           description: data.description,
-          requiredTags: data.required_tags,
+          requiredTags: data.required_tags || [],
           rewardType: data.reward_type,
           rewardAmount: data.reward_amount,
           rewardSubscriptionId: data.reward_subscription_id,

@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, DollarSign, Users, Clock, AlertCircle, CheckCircle2, Wallet } from 'lucide-react';
+import { Plus, DollarSign, Users, Clock, AlertCircle, CheckCircle2, Wallet, Trash2 } from 'lucide-react';
 import { formatCurrency, getTimeRemaining } from '@/lib/utils';
 
 interface Challenge {
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'draft' | 'active' | 'completed'>('all');
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchChallenges();
@@ -51,6 +52,33 @@ export default function DashboardPage() {
       setChallenges([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteChallenge = async (challengeId: string, challengeTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${challengeTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeleting(challengeId);
+    try {
+      const response = await fetch(`/api/challenges/${challengeId}/delete`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete challenge');
+      }
+
+      // Refresh challenges list
+      await fetchChallenges();
+      alert('Challenge deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete challenge:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete challenge');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -287,13 +315,23 @@ export default function DashboardPage() {
                       
                       <div className="ml-6 flex flex-col space-y-2">
                         {challenge.status === 'DRAFT' ? (
-                          <Link
-                            href={`/challenges/${challenge.id}/fund`}
-                            className="btn btn-primary btn-sm flex items-center"
-                          >
-                            <Wallet className="w-4 h-4 mr-1" />
-                            Fund Challenge
-                          </Link>
+                          <>
+                            <Link
+                              href={`/challenges/${challenge.id}/fund`}
+                              className="btn btn-primary btn-sm flex items-center"
+                            >
+                              <Wallet className="w-4 h-4 mr-1" />
+                              Fund Challenge
+                            </Link>
+                            <button
+                              onClick={() => handleDeleteChallenge(challenge.id, challenge.title)}
+                              disabled={deleting === challenge.id}
+                              className="btn btn-sm bg-red-600 hover:bg-red-700 text-white flex items-center"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              {deleting === challenge.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </>
                         ) : (
                           <Link
                             href={`/challenges/${challenge.id}`}

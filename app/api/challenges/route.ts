@@ -10,16 +10,42 @@ export async function GET(request: NextRequest) {
   const rewardType = searchParams.get('reward_type');
   const search = searchParams.get('search');
   const sortBy = searchParams.get('sort') || 'newest';
+  const section = searchParams.get('section') || 'active'; // 'active', 'ended'
+  const visibility = searchParams.get('visibility') || 'public'; // 'public', 'private'
   
   const offset = (page - 1) * limit;
 
   try {
-    // Build where clause
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Build where clause based on section
     let whereClause: any = {
-      status: 'ACTIVE',
       isFunded: true,
-      visibility: 'PUBLIC', // Only show public challenges for now
     };
+
+    // Filter by section (active vs ended)
+    if (section === 'active') {
+      whereClause.status = 'ACTIVE';
+      whereClause.deadline = { gt: now }; // Only show non-expired challenges
+    } else if (section === 'ended') {
+      whereClause.OR = [
+        { 
+          status: 'ACTIVE',
+          deadline: { lte: now, gte: oneWeekAgo } // Expired but within last week
+        },
+        { 
+          status: 'COMPLETED',
+          deadline: { gte: oneWeekAgo } // Completed within last week
+        }
+      ];
+    }
+
+    // Filter by visibility - for now, only public
+    // TODO: Add private challenge filtering based on user membership
+    if (visibility === 'public') {
+      whereClause.visibility = 'PUBLIC';
+    }
 
     // Add filters
     if (rewardType) {
